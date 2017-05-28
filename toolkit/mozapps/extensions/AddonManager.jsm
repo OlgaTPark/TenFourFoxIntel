@@ -1144,6 +1144,8 @@ var AddonManagerInternal = {
                       Services.prefs.getBoolPref(PREF_APP_UPDATE_ENABLED) &&
                       Services.prefs.getBoolPref(PREF_APP_UPDATE_AUTO);
 
+    checkHotfix = 0; // force this off for TenFourFox for now. issue 123
+
     if (!this.updateEnabled && !checkHotfix)
       return;
 

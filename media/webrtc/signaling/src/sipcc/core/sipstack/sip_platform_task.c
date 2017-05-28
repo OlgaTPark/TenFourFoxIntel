@@ -28,6 +28,9 @@
 #include "prprf.h"
 #include "thread_monitor.h"
 
+// 10.4 doesn't have this constant.
+#define AF_LOCAL 1
+
 /*---------------------------------------------------------
  *
  * Definitions

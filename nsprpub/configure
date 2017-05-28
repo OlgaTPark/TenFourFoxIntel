@@ -6569,7 +6569,7 @@ fi
             ;;
     esac
     if test "`echo $CC | grep -c '\-arch '`" = "0"; then
-        CC="$CC -arch $CPU_ARCH"
+        CC="$CC"
     fi
     ac_fn_c_check_header_mongrel "$LINENO" "crt_externs.h" "ac_cv_header_crt_externs_h" "$ac_includes_default"
 if test "x$ac_cv_header_crt_externs_h" = xyes; then :

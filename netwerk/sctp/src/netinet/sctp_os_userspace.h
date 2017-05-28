@@ -401,7 +401,9 @@ struct udphdr {
 
 #else /* !defined(Userspace_os_Windows) */
 #include <sys/cdefs.h> /* needed? added from old __FreeBSD__ */
+#include <sys/types.h>
 #include <sys/socket.h>
+#include <pthread.h>
 #if defined(__Userspace_os_DragonFly) || defined(__Userspace_os_FreeBSD) || defined(__Userspace_os_Linux) || defined(__Userspace_os_NetBSD) || defined(__Userspace_os_OpenBSD) || defined(ANDROID)
 #include <pthread.h>
 #endif
@@ -427,7 +429,7 @@ struct sx {int dummy;};
 /* #include <sys/param.h>  in FreeBSD defines MSIZE */
 /* #include <sys/ktr.h> */
 /* #include <sys/systm.h> */
-#if defined(__Userspace_os_Windows)
+#if 1 // 10.4 has an old one. // defined(__Userspace_os_Windows)
 #include <user_queue.h>
 #else
 #include <sys/queue.h>

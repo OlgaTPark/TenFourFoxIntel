@@ -56,6 +56,8 @@ toolkit.jar:
    content/global/select-child.js             (select-child.js)
    content/global/treeUtils.js                (treeUtils.js)
    content/global/viewZoomOverlay.js          (viewZoomOverlay.js)
+   content/global/sluggo.xhtml                (sluggo.xhtml)
+   content/global/sluggo.jpg                  (sluggo.jpg)
 *+ content/global/bindings/autocomplete.xml    (widgets/autocomplete.xml)
    content/global/bindings/browser.xml         (widgets/browser.xml)
    content/global/bindings/button.xml          (widgets/button.xml)

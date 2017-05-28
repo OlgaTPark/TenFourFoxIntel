@@ -35,10 +35,14 @@ VideoRenderFrames::~VideoRenderFrames() {
 int32_t VideoRenderFrames::AddFrame(I420VideoFrame* new_frame) {
   const int64_t time_now = TickTime::MillisecondTimestamp();
 
+#if(0)
   if (new_frame->render_time_ms() + KOldRenderTimestampMS < time_now) {
     WEBRTC_TRACE(kTraceWarning, kTraceVideoRenderer, -1,
                  "%s: too old frame, timestamp=%u.",
                  __FUNCTION__, new_frame->timestamp());
+fprintf(stderr, "Dropped frame: %u now, %u frame.\n",
+                 time_now,
+		new_frame->render_time_ms() + KOldRenderTimestampMS);
     return -1;
   }
   if (new_frame->render_time_ms() > time_now + KFutureRenderTimestampMS) {
@@ -47,6 +51,7 @@ int32_t VideoRenderFrames::AddFrame(I420VideoFrame* new_frame) {
                  __FUNCTION__, new_frame->timestamp());
     return -1;
   }
+#endif
 
   if (new_frame->native_handle() != NULL) {
     incoming_frames_.PushBack(new TextureVideoFrame(

@@ -60,6 +60,8 @@ dnsGetHostByName (const char *hname,
 #endif
 
     ip_address = inet_addr(hname);
+// 10.4 doesn't have this constant.
+#define INADDR_NONE 0xffffffff
     if (ip_address != INADDR_NONE) {
         ipaddr_ptr->u.ip4 = ip_address;
         ipaddr_ptr->type = CPR_IP_ADDR_IPV4;

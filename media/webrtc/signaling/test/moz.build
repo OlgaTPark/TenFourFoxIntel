@@ -81,7 +81,6 @@ if CONFIG['OS_TARGET'] == 'Darwin':
         '-framework SystemConfiguration',
         '-framework IOKit',
         '-F%s' % CONFIG['MACOS_PRIVATE_FRAMEWORKS_DIR'],
-        '-framework CoreUI',
     ]
 
 if CONFIG['OS_TARGET'] in ('DragonFly', 'FreeBSD', 'NetBSD', 'OpenBSD'):

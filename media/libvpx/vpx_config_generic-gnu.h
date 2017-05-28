@@ -14,7 +14,7 @@
 #define ARCH_MIPS 0
 #define ARCH_X86 0
 #define ARCH_X86_64 0
-#define ARCH_PPC32 0
+#define ARCH_PPC32 1
 #define ARCH_PPC64 0
 #define HAVE_EDSP 0
 #define HAVE_MEDIA 0
@@ -49,7 +49,7 @@
 #define CONFIG_GCC 1
 #define CONFIG_MSVS 0
 #define CONFIG_PIC 0
-#define CONFIG_BIG_ENDIAN 0
+#define CONFIG_BIG_ENDIAN 1
 #define CONFIG_CODEC_SRCS 0
 #define CONFIG_DEBUG_LIBS 0
 #define CONFIG_FAST_UNALIGNED 1

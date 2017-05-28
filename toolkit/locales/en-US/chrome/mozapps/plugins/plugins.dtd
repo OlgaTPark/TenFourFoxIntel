@@ -32,7 +32,7 @@
 <!-- LOCALIZATION NOTE (unsupportedPlatform.post): Mobile only. Include text here if needed for your locale. -->
 <!ENTITY unsupportedPlatform.post                            "">
 
-<!ENTITY missingPlugin                                       "A plugin is needed to display this content.">
+<!ENTITY missingPlugin                                       "TenFourFox does not support plugins for this content.">
 <!-- LOCALIZATION NOTE (tapToPlayPlugin): Mobile (used for touch interfaces) only has one type of plugin possible. -->
 <!ENTITY tapToPlayPlugin                                     "Tap here to activate plugin.">
 <!ENTITY clickToActivatePlugin                               "Activate plugin.">
@@ -40,7 +40,7 @@
 <!ENTITY disabledPlugin                                      "This plugin is disabled.">
 <!ENTITY blockedPlugin.label                                 "This plugin has been blocked for your protection.">
 <!ENTITY hidePluginBtn.label                                 "Hide plugin">
-<!ENTITY installPlugin                                       "Install plugin…">
+<!ENTITY installPlugin                                       "More information…">
 <!ENTITY managePlugins                                       "Manage plugins…">
 
 <!-- LOCALIZATION NOTE (reloadPlugin.pre): include a trailing space as needed -->

@@ -448,7 +448,15 @@ cprGetMessage (cprMsgQueue_t msgQueue, boolean waitForever, void **ppUserData)
     cpr_msgq_node_t *node;
     struct timespec timeout;
     struct timeval tv;
+#if(0)
     struct timezone tz;
+#else
+    // KLUUUUUUUDGE
+    struct _timezone {
+        int     tz_minuteswest; /* minutes west of Greenwich */
+        int     tz_dsttime;     /* type of dst correction */
+    } tz;
+#endif
 
     msgq = (cpr_msg_queue_t *) msgQueue;
 
