@@ -21,6 +21,8 @@
 class nsDeviceContext;
 struct SegmentedControlRenderSettings;
 
+typedef float CGFloat; // sigh
+
 class nsNativeThemeCocoa : private nsNativeTheme,
                            public nsITheme
 {
@@ -78,6 +80,8 @@ protected:
                  nsEventStates inState);
   void DrawMeter(CGContextRef context, const HIRect& inBoxRect,
                  nsIFrame* aFrame);
+  void DrawTab(CGContextRef context, HIRect inBoxRect, nsEventStates inState,
+               nsIFrame* aFrame);
   void DrawSegment(CGContextRef cgContext, const HIRect& inBoxRect,
                    nsEventStates inState, nsIFrame* aFrame,
                    const SegmentedControlRenderSettings& aSettings);

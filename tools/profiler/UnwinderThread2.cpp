@@ -56,6 +56,8 @@
 */
 #define LOGLEVEL 2
 
+// Windows isn't supported and neither are we, so pretend we're Windows.
+#define SPS_OS_windows
 
 // The 'else' of this covers the entire rest of the file
 #if defined(SPS_OS_windows)

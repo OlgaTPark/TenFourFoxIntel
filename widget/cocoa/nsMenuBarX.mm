@@ -331,6 +331,7 @@ nsMenuX* nsMenuBarX::GetXULHelpMenu()
 // This resolves bugs 489196 and 539317.
 void nsMenuBarX::SetSystemHelpMenu()
 {
+  if (!nsCocoaFeatures::OnSnowLeopardOrLater()) return; // not on 10.4 and 10.5
   nsMenuX* xulHelpMenu = GetXULHelpMenu();
   if (xulHelpMenu) {
     NSMenu* helpMenu = (NSMenu*)xulHelpMenu->NativeData();
@@ -784,7 +785,14 @@ static BOOL gMenuItemsExecuteCommands = YES;
     if (![NSApp keyWindow] || [[NSApp keyWindow] firstResponder] != firstResponder) {
       return YES;
     }
+//return NO; // I'm not sure which is the correct behaviour for plugins.
+// See bugs 78414, 93149 and 181177. For now, let's stick with existing code.
   }
+
+// Shortcut this logic for 10.4, it seems to be required for key combinations
+// to be handled properly at all. We can't return no, the event gets
+// handled twice. -- Cameron
+   return [super performKeyEquivalent:theEvent];
 
   // Return NO so that we can handle the event via NSView's "keyDown:".
   return NO;
@@ -963,10 +971,19 @@ static BOOL gMenuItemsExecuteCommands = YES;
   return newItem;
 }
 
+struct objc10_object {
+	Class	isa;
+};
+
 - (void) _overrideClassOfMenuItem:(NSMenuItem *)menuItem
 {
   if ([menuItem class] == [NSMenuItem class])
+#ifdef NS_LEOPARD_AND_LATER
     object_setClass(menuItem, [GeckoServicesNSMenuItem class]);
+#else
+    ((struct objc10_object *)menuItem)->isa = [GeckoServicesNSMenuItem class];
+#endif
+
 }
 
 @end

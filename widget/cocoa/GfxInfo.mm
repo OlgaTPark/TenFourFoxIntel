@@ -24,6 +24,8 @@
 #define NS_CRASHREPORTER_CONTRACTID "@mozilla.org/toolkit/crash-reporter;1"
 #endif
 
+typedef long GLint; // 10.4 doesn't have GLint.
+
 #define MAC_OS_X_VERSION_MASK       0x0000FFFF
 #define MAC_OS_X_VERSION_MAJOR_MASK 0x0000FFF0
 #define MAC_OS_X_VERSION_10_4_HEX   0x00001040 // Not supported

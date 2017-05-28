@@ -49,7 +49,8 @@ ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
 CMMSRCS += MacLaunchHelper.mm
 CMMSRCS += MacApplicationDelegate.mm
 CMMSRCS += MacAutoreleasePool.mm
-ENABLE_CXX_EXCEPTIONS = 1
+#ENABLE_CXX_EXCEPTIONS = 1
+OS_CXXFLAGS += -fno-exceptions
 endif
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),android)

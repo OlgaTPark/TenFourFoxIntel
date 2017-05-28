@@ -12,6 +12,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
+typedef int NSInteger; // followon for bug 633941 10.4Fx
 
 #include "nsCOMPtr.h"
 #include "nsINativeAppSupport.h"

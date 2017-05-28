@@ -101,5 +101,4 @@ LOCAL_INCLUDES	= \
 LDFLAGS	+= \
 	-framework QuickTime \
 	-framework IOKit \
-	-F/System/Library/PrivateFrameworks -framework CoreUI \
 	$(NULL)

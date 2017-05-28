@@ -124,8 +124,10 @@ nsScreenCocoa::GetContentsScaleFactor(double *aContentsScaleFactor)
   NS_OBJC_END_TRY_ABORT_BLOCK_NSRESULT;
 }
 
+inline
 CGFloat
 nsScreenCocoa::BackingScaleFactor()
 {
-  return nsCocoaUtils::GetBackingScaleFactor(mScreen);
+  return 1.0f;
+  //return nsCocoaUtils::GetBackingScaleFactor(mScreen);
 }

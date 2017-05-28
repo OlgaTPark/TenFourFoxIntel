@@ -103,7 +103,7 @@ bool sps_version2()
          || defined(SPS_PLAT_amd64_windows)
     allow2 = false;
 #   else
-#     error "Unknown platform"
+#     warning "Unknown platform"
 #   endif
 
     bool req2 = PR_GetEnv("MOZ_PROFILER_NEW") != NULL; // Has v2 been requested?
@@ -258,6 +258,9 @@ void read_profiler_env_vars()
 
 void mozilla_sampler_init(void* stackTop)
 {
+  // 10.4Fx does not support the Sampler; it doesn't grok PPC or 10.4.
+  return;
+
   sInitCount++;
 
   if (stack_key_initialized)
@@ -311,6 +314,9 @@ void mozilla_sampler_init(void* stackTop)
 
 void mozilla_sampler_shutdown()
 {
+  // 10.4Fx does not support the Sampler; it doesn't grok PPC or 10.4.
+  return;
+
   sInitCount--;
 
   if (sInitCount > 0)
@@ -345,6 +351,8 @@ void mozilla_sampler_shutdown()
 
 void mozilla_sampler_save()
 {
+  return; // 10.4Fx
+
   TableTicker *t = tlsTicker.get();
   if (!t) {
     return;
@@ -358,6 +366,7 @@ void mozilla_sampler_save()
 
 char* mozilla_sampler_get_profile()
 {
+  return NULL; // 10.4Fx
   TableTicker *t = tlsTicker.get();
   if (!t) {
     return NULL;
@@ -371,6 +380,7 @@ char* mozilla_sampler_get_profile()
 
 JSObject *mozilla_sampler_get_profile_data(JSContext *aCx)
 {
+  return NULL; // 10.4Fx
   TableTicker *t = tlsTicker.get();
   if (!t) {
     return NULL;
@@ -382,6 +392,7 @@ JSObject *mozilla_sampler_get_profile_data(JSContext *aCx)
 
 const char** mozilla_sampler_get_features()
 {
+  return NULL; // 10.4Fx
   static const char* features[] = {
 #if defined(MOZ_PROFILING) && defined(HAVE_NATIVE_UNWIND)
     // Walk the C++ stack.
@@ -420,6 +431,7 @@ void mozilla_sampler_start(int aProfileEntries, int aInterval,
                            const char** aThreadNameFilters, uint32_t aFilterCount)
 
 {
+  return; // 10.4Fx
   if (!stack_key_initialized)
     profiler_init(NULL);
 
@@ -486,6 +498,7 @@ void mozilla_sampler_start(int aProfileEntries, int aInterval,
 
 void mozilla_sampler_stop()
 {
+  return; // 10.4Fx
   if (!stack_key_initialized)
     profiler_init(NULL);
 
@@ -530,6 +543,8 @@ void mozilla_sampler_stop()
 
 bool mozilla_sampler_is_active()
 {
+// We never run the sampler.
+return false;
   return sIsProfiling;
 }
 
@@ -537,6 +552,7 @@ static double sResponsivenessTimes[100];
 static unsigned int sResponsivenessLoc = 0;
 void mozilla_sampler_responsiveness(const TimeStamp& aTime)
 {
+  return; // 10.4Fx
   if (!sLastTracerEvent.IsNull()) {
     if (sResponsivenessLoc == 100) {
       for(size_t i = 0; i < 100-1; i++) {
@@ -569,6 +585,7 @@ void mozilla_sampler_print_location2()
 
 void mozilla_sampler_lock()
 {
+  return;
   profiler_stop();
   nsCOMPtr<nsIObserverService> os = mozilla::services::GetObserverService();
   if (os)
@@ -577,6 +594,7 @@ void mozilla_sampler_lock()
 
 void mozilla_sampler_unlock()
 {
+  return;
   nsCOMPtr<nsIObserverService> os = mozilla::services::GetObserverService();
   if (os)
     os->NotifyObservers(nullptr, "profiler-unlocked", nullptr);
@@ -584,6 +602,7 @@ void mozilla_sampler_unlock()
 
 bool mozilla_sampler_register_thread(const char* aName, void* stackTop)
 {
+  return false;
   PseudoStack* stack = new PseudoStack();
   tlsPseudoStack.set(stack);
 
@@ -592,6 +611,7 @@ bool mozilla_sampler_register_thread(const char* aName, void* stackTop)
 
 void mozilla_sampler_unregister_thread()
 {
+  return;
   Sampler::UnregisterCurrentThread();
 }
 

@@ -11,6 +11,8 @@
 class nsCocoaFeatures {
 public:
   static int32_t OSXVersion();
+  static bool OnLeopardOrLater(); // 10.4Fx
+  static bool OnSnowLeopardOrLater(); // 10.4Fx
   static bool OnLionOrLater();
   static bool OnMountainLionOrLater();
   static bool SupportCoreAnimationPlugins();

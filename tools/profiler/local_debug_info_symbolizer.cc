@@ -15,6 +15,10 @@
 #include "google_breakpad/processor/stack_frame.h"
 #include "common/logging.h"
 
+// Not supported on PowerPC, so take advantage of the fact that Windows
+// doesn't support this either.
+#define SPS_OS_windows
+
 #if defined(SPS_PLAT_amd64_linux) || defined(SPS_PLAT_arm_android) \
     || defined(SPS_PLAT_x86_linux) || defined(SPS_PLAT_x86_android)
 # include "common/linux/dump_symbols.h"

@@ -75,7 +75,10 @@ typedef struct _nsCocoaWindowList {
   // descendants to use.
   float mDPI;
 
+// 10.4 doesn't have NSTrackingArea.
+#if(0)
   NSTrackingArea* mTrackingArea;
+#endif
 }
 
 - (void)importState:(NSDictionary*)aState;
@@ -167,6 +170,14 @@ typedef struct _nsCocoaWindowList {
 - (void)sendToplevelActivateEvents;
 - (void)sendToplevelDeactivateEvents;
 @end
+
+// backout bug 678091
+struct UnifiedGradientInfo {
+  float titlebarHeight;
+  float toolbarHeight;
+  BOOL windowIsMain;
+  BOOL drawTitlebar; // NO for toolbar, YES for titlebar
+};
 
 @class ToolbarWindow;
 
@@ -295,10 +306,20 @@ public:
     void SetMenuBar(nsMenuBarX* aMenuBar);
     nsMenuBarX *GetMenuBar();
 
+#ifdef NS_LEOPARD_AND_LATER
+// This was introduced by bug 807893.
     NS_IMETHOD NotifyIME(NotificationToIME aNotification) MOZ_OVERRIDE;
     NS_IMETHOD_(void) SetInputContext(
                         const InputContext& aContext,
                         const InputContextAction& aAction) MOZ_OVERRIDE;
+#else
+    NS_IMETHOD_(void) SetInputContext(const InputContext& aContext,
+                                      const InputContextAction& aAction)
+    {
+      mInputContext = aContext;
+    }
+#endif
+
     NS_IMETHOD_(InputContext) GetInputContext()
     {
       NSView* view = mWindow ? [mWindow contentView] : nil;
@@ -313,6 +334,8 @@ public:
       }
       return mInputContext;
     }
+
+    static void UnifiedShading(void* aInfo, const CGFloat* aIn, CGFloat* aOut);
 
     void SetPopupWindowLevel();
 

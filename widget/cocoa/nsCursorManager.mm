@@ -205,6 +205,8 @@ static const nsCursor sCustomCursor = eCursorCount;
   [[NSCursor currentCursor] set];
 
   nsCursor oldType = [mCurrentMacCursor type];
+#if(0)
+// This has weird side effects on some sites. Issue 260.
   if (oldType != aCursor) {
     if (aCursor == eCursor_none) {
       [NSCursor hide];
@@ -212,6 +214,7 @@ static const nsCursor sCustomCursor = eCursorCount;
       [NSCursor unhide];
     }
   }
+#endif
   [self setMacCursor:[self getCursor:aCursor]];
 
   // if a custom cursor was previously set, release sCursorImgContainer

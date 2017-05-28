@@ -62,6 +62,9 @@ using namespace mozilla;
  #define snprintf _snprintf
 #endif
 
+// Take advantage of the fact Windows stubs this out.
+#define SPS_OS_windows
+
 
 ////////////////////////////////////////////////////////////////////////
 // BEGIN take samples.

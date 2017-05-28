@@ -83,6 +83,7 @@ class gfxASurface;
 class nsChildView;
 class nsCocoaWindow;
 union nsPluginPort;
+class nsITimer;
 
 namespace mozilla {
 namespace gl {
@@ -127,6 +128,18 @@ class GLManager;
 - (NSRect)_dirtyRect;
 
 @end
+
+// _dirtyRegion and getRects in fact exist back as far as 10.3.9; see
+// http://lightchaos.blog10.fc2.com/blog-entry-111.html for an AppKit
+// class dump.
+
+// Needed to support pixel scrolling.
+// See http://developer.apple.com/qa/qa2005/qa1453.html.
+// kEventMouseScroll is only defined on 10.5+. Using the moz prefix avoids
+// potential symbol conflicts.
+enum {
+  mozkEventMouseScroll             = 11
+};
 
 // Support for pixel scroll deltas, not part of NSEvent.h
 // See http://lists.apple.com/archives/cocoa-dev/2007/Feb/msg00050.html
@@ -228,11 +241,35 @@ typedef NSInteger NSEventGestureAxis;
   // for Gecko's leak detector to detect leaked TextInputHandler objects.
   // This is initialized by [mozView installTextInputHandler:aHandler] and
   // cleared by [mozView uninstallTextInputHandler].
+#ifdef NS_LEOPARD_AND_LATER
   mozilla::widget::TextInputHandler* mTextInputHandler;  // [WEAK]
+#endif
 
   BOOL mIsPluginView;
   NPEventModel mPluginEventModel;
   NPDrawingModel mPluginDrawingModel;
+
+// backout bug 519972
+#ifndef NS_LEOPARD_AND_LATER
+  // The following variables are only valid during key down event processing.
+  // Their current usage needs to be fixed to avoid problems with nested event
+  // loops that can confuse them. Once a variable is set during key down event
+  // processing, if an event spawns a nested event loop the previously set value
+  // will be wiped out.
+  NSEvent* mCurKeyEvent;
+  bool mKeyDownHandled;
+  // While we process key down events we need to keep track of whether or not
+  // we sent a key press event. This helps us make sure we do send one
+  // eventually.
+  BOOL mKeyPressSent;
+  // Valid when mKeyPressSent is true.
+  bool mKeyPressHandled;
+  // needed for NSTextInput implementation on 10.4
+  NSRange mMarkedRange;
+  BOOL mPluginComplexTextInputRequested;
+  // When this is YES the next key up event (keyUp:) will be ignored.
+  BOOL mIgnoreNextKeyUpEvent;
+#endif
 
   // when mouseDown: is called, we store its event here (strong)
   NSEvent* mLastMouseDownEvent;
@@ -362,6 +399,62 @@ typedef NSInteger NSEventGestureAxis;
 - (void)setUsingOMTCompositor:(BOOL)aUseOMTC;
 @end
 
+#ifndef NS_LEOPARD_AND_LATER
+// We don't use bug 519972 at all in TenFourFox.
+//-------------------------------------------------------------------------
+//
+// nsTSMManager
+//
+//-------------------------------------------------------------------------
+
+class nsTSMManager {
+public:
+  static bool IsComposing() { return sComposingView ? true : false; }
+  static bool IsIMEEnabled() { return sIsIMEEnabled; }
+  static bool IgnoreCommit() { return sIgnoreCommit; }
+
+  // returns nsIWidget::IME_STATUS_*
+  static uint32_t GetIMEEnabled() { return sIMEEnabledStatus; }
+
+  // Note that we cannot get the actual state in TSM, but we can trust this
+  // value because nsIMEStateManager resets this at every change of focus.
+  // This doesn't work for plugins, but we don't support them anyway, so there.
+  static bool IsRomanKeyboardsOnly() { return sIsRomanKeyboardsOnly; }
+
+  static void OnDestroyView(NSView<mozView>* aDestroyingView);
+
+  static bool GetIMEOpenState();
+
+  static void InitTSMDocument(NSView<mozView>* aViewForCaret);
+  static void StartComposing(NSView<mozView>* aComposingView);
+  static void UpdateComposing(NSString* aComposingString);
+  static void EndComposing();
+  static void SetIMEOpenState(bool aOpen);
+  static nsresult SetIMEEnabled(uint32_t aEnabled);
+
+  static void CommitIME();
+  static void CancelIME();
+
+  static void Shutdown();
+private:
+  static bool sIsIMEEnabled;
+  static bool sIsRomanKeyboardsOnly;
+  static bool sIgnoreCommit;
+  static NSView<mozView>* sComposingView;
+  static TSMDocumentID sDocumentID;
+  static NSString* sComposingString;
+  static nsITimer* sSyncKeyScriptTimer;
+  static uint32_t sIMEEnabledStatus; // nsIWidget::IME_STATUS_*
+
+  static void KillComposing();
+  static void CallKeyScriptAPI();
+  static void SyncKeyScript(nsITimer* aTimer, void* aClosure);
+
+  static void EnableIME(bool aEnable);
+  static void SetRomanKeyboardsOnly(bool aRomanOnly);
+};
+#endif // NS_LEOPARD_AND_LATER
+
 class ChildViewMouseTracker {
 
 public:
@@ -382,6 +475,8 @@ public:
   static NSEvent* sLastMouseMoveEvent;
   static NSWindow* sWindowUnderMouse;
   static NSPoint sLastScrollEventScreenLocation;
+
+  static NSWindow* WindowForEvent(NSEvent* aEvent);
 };
 
 //-------------------------------------------------------------------------
@@ -538,7 +633,9 @@ public:
   static uint32_t GetCurrentInputEventCount();
   static void UpdateCurrentInputEventCount();
 
+#ifdef NS_LEOPARD_AND_LATER
   NSView<mozView>* GetEditorView();
+#endif
 
   bool IsPluginView() { return (mWindowType == eWindowType_plugin); }
 
@@ -546,10 +643,12 @@ public:
 
   NS_IMETHOD        ReparentNativeWidget(nsIWidget* aNewParent);
 
+#ifdef NS_LEOPARD_AND_LATER
   mozilla::widget::TextInputHandler* GetTextInputHandler()
   {
     return mTextInputHandler;
   }
+#endif
 
   void              NotifyDirtyRegion(const nsIntRegion& aDirtyRegion);
 
@@ -608,7 +707,10 @@ protected:
 protected:
 
   NSView<mozView>*      mView;      // my parallel cocoa view (ChildView or NativeScrollbarView), [STRONG]
+#ifdef NS_LEOPARD_AND_LATER
   nsRefPtr<mozilla::widget::TextInputHandler> mTextInputHandler;
+#endif
+  static uint32_t	sSecureEventInputCount; // bug 807893
   InputContext          mInputContext;
 
   NSView<mozView>*      mParentView;

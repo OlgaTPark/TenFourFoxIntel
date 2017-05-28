@@ -327,9 +327,11 @@ NSString
   }
 
   //we look for these flavors of Firefox, in this order
+/*
   NSArray* launchBinarySearchList = [NSArray arrayWithObjects: @"org.mozilla.nightly",
                                                                 @"org.mozilla.aurora",
                                                                 @"org.mozilla.firefox", nil];
+*/
 
   //if they provided a manual override, use that.  If they made an error, it will fail to launch
   if (alternateBinaryID != nil && ([alternateBinaryID length] > 0)) {
@@ -342,13 +344,15 @@ NSString
   }
 
   //No override found, loop through the various flavors of firefox we have
-  for (NSString* signature in launchBinarySearchList) {
+//  for (NSString* signature in launchBinarySearchList) {
+// We only support this for TenFourFox.
+   NSString *signature = @"com.floodgap.tenfourfox";
     NSLog(@"SEARCHING for webapprt, trying: %@", signature);
     binaryPath = [[NSWorkspace sharedWorkspace] absolutePathForAppBundleWithIdentifier:signature];
     if (binaryPath && [binaryPath length] > 0) {
       return binaryPath;
     }
-  }
+//  }
 
   NSLog(@"unable to find a valid webrt path");
   @throw MakeException(@"This App requires that Firefox version 16 or above is installed.", @"Firefox 16+ has not been detected.");

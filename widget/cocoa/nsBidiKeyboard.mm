@@ -25,8 +25,38 @@ nsBidiKeyboard::~nsBidiKeyboard()
 
 NS_IMETHODIMP nsBidiKeyboard::IsLangRTL(bool *aIsRTL)
 {
+#ifdef NS_LEOPARD_AND_LATER
   *aIsRTL = TISInputSourceWrapper::CurrentInputSource().IsForRTLLanguage();
   return NS_OK;
+#else
+  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
+
+  *aIsRTL = false;
+  nsresult rv = NS_ERROR_FAILURE;
+
+  OSStatus err;
+  KeyboardLayoutRef currentKeyboard;
+
+  err = ::KLGetCurrentKeyboardLayout(&currentKeyboard);
+  if (err == noErr) {
+    const void* currentKeyboardResID;
+    err = ::KLGetKeyboardLayoutProperty(currentKeyboard, kKLIdentifier,
+                                        &currentKeyboardResID);
+    if (err == noErr) {
+      // Check if the resource id is BiDi associated (Arabic, Persian, Hebrew)
+      // (Persian is included in the Arabic range)
+      // http://developer.apple.com/documentation/mac/Text/Text-534.html#HEADING534-0
+      // Note: these ^^ values are negative on Mac OS X
+      *aIsRTL = ((SInt32)currentKeyboardResID >= -18943 &&
+                 (SInt32)currentKeyboardResID <= -17920);
+      rv = NS_OK;
+    }
+  }
+
+  return rv;
+
+  NS_OBJC_END_TRY_ABORT_BLOCK_NSRESULT;
+#endif
 }
 
 NS_IMETHODIMP nsBidiKeyboard::SetLangFromBidiLevel(uint8_t aLevel)
