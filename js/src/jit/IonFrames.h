@@ -292,6 +292,8 @@ MakeFrameDescriptor(uint32_t frameSize, FrameType type)
 # include "jit/shared/IonFrames-x86-shared.h"
 #elif defined (JS_CPU_ARM)
 # include "jit/arm/IonFrames-arm.h"
+#elif defined (JS_CPU_PPC_OSX)
+# include "jit/ppcosx/IonFrames-ppc.h"
 #else
 # error "unsupported architecture"
 #endif

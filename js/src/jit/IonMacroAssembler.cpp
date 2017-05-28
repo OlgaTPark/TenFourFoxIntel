@@ -1234,6 +1234,7 @@ MacroAssembler::popRooted(VMFunction::RootType rootType, Register cellReg,
     }
 }
 
+#if(0) // bug 881882
 ABIArgIter::ABIArgIter(const MIRTypeVector &types)
   : gen_(),
     types_(types),
@@ -1251,3 +1252,4 @@ ABIArgIter::operator++(int)
     if (!done())
         gen_.next(types_[i_]);
 }
+#endif // JS_ASMJS

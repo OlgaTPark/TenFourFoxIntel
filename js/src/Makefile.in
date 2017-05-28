@@ -87,6 +87,9 @@ endif
 ifeq (arm, $(findstring arm, $(TARGET_CPU)))
 VPATH +=	$(srcdir)/jit/arm
 endif
+ifeq (powerpc, $(findstring powerpc, $(TARGET_CPU)))
+VPATH +=	$(srcdir)/jit/ppcosx
+endif
 endif #ENABLE_ION
 
 ###############################################

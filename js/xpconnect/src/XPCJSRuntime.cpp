@@ -2715,7 +2715,9 @@ XPCJSRuntime::XPCJSRuntime(nsXPConnect* aXPConnect)
     JS_SetNativeStackQuota(runtime, 900 * 1024);
 #elif defined(XP_MACOSX) || defined(DARWIN)
     // 8MB is the default stack size on MacOS
-    JS_SetNativeStackQuota(runtime, 7 * 1024 * 1024);
+    // ... except if you're TenFourFox
+    //JS_SetNativeStackQuota(runtime, 7 * 1024 * 1024);
+    JS_SetNativeStackQuota(runtime, 32768 * 1024);
 #else
     JS_SetNativeStackQuota(runtime, 128 * sizeof(size_t) * 1024);
 #endif

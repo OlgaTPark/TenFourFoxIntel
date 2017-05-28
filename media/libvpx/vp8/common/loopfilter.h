@@ -15,7 +15,7 @@
 #include "vpx_ports/mem.h"
 #include "vpx_config.h"
 
-#define MAX_LOOP_FILTER             63
+#define MAX_LOOP_FILTER             8
 /* fraction of total macroblock rows to be used in fast filter level picking */
 /* has to be > 2 */
 #define PARTIAL_FRAME_FRACTION      8
@@ -72,6 +72,30 @@ typedef struct
 
 #if ARCH_ARM
 #include "arm/loopfilter_arm.h"
+#endif
+
+#if HAVE_ALTIVEC
+#warning using altivec loopfilter
+// our assembler prototypes are in ppc/loopfilter_altivec.c
+
+extern prototype_loopfilter_block(loop_filter_mbv_ppc);
+extern prototype_loopfilter_block(loop_filter_bv_ppc);
+extern prototype_loopfilter_block(loop_filter_mbh_ppc);
+extern prototype_loopfilter_block(loop_filter_bh_ppc);
+extern prototype_simple_loopfilter(loop_filter_mbvs_ppc);
+extern prototype_simple_loopfilter(loop_filter_bvs_ppc);
+extern prototype_simple_loopfilter(loop_filter_mbhs_ppc);
+extern prototype_simple_loopfilter(loop_filter_bhs_ppc);
+
+#define vp8_lf_normal_mb_v loop_filter_mbv_ppc
+#define vp8_lf_normal_b_v loop_filter_bv_ppc
+#define vp8_lf_normal_mb_h loop_filter_mbh_ppc
+#define vp8_lf_normal_b_h loop_filter_bh_ppc
+#define vp8_lf_simple_mb_v loop_filter_mbvs_ppc
+#define vp8_lf_simple_b_v loop_filter_bvs_ppc
+#define vp8_lf_simple_mb_h loop_filter_mbhs_ppc
+#define vp8_lf_simple_b_h loop_filter_bhs_ppc
+
 #endif
 
 #ifndef vp8_lf_normal_mb_v

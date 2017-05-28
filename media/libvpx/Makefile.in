@@ -62,6 +62,15 @@ VPATH += \
   $(NULL)
 
 #Setup the libvpx assembler config.
+
+ifdef VPX_VMX_ASM
+# For PPC, use the Tiger dumb-as.
+VPX_AS=gcc
+VPX_ASFLAGS=-force_cpusubtype_ALL
+VPX_DASH_C_FLAG=-c
+VPX_ASM_SUFFIX=s
+endif
+
 AS=$(VPX_AS)
 ASFLAGS=$(VPX_ASFLAGS) -I. -I$(topsrcdir)/media/libvpx/ -I$(topsrcdir)/media/libvpx/vpx_ports/
 AS_DASH_C_FLAG=$(VPX_DASH_C_FLAG)
@@ -243,6 +252,27 @@ ASFILES += \
 
 endif
 
+endif
+
+# 10.4Fx AltiVec accelerator
+ifdef VPX_VMX_ASM
+VPATH += \
+  $(srcdir)/vp8/common/ppc \
+  $(NULL)
+
+CSRCS += \
+  ppc_systemdependent.c \
+  loopfilter_altivec.c \
+  $(NULL)
+
+ASFILES += \
+  copy_altivec.s \
+  idctllm_altivec.s \
+  recon_altivec.s \
+  filter_altivec.s \
+  filter_bilinear_altivec.s \
+  loopfilter_filters_altivec.s \
+  $(NULL)
 endif
 
 ifdef VPX_ARM_ASM

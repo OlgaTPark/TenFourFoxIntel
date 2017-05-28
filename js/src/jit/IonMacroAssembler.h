@@ -18,6 +18,8 @@
 # include "jit/x64/MacroAssembler-x64.h"
 #elif defined(JS_CPU_ARM)
 # include "jit/arm/MacroAssembler-arm.h"
+#elif defined(JS_CPU_PPC_OSX)
+# include "jit/ppcosx/MacroAssembler-ppc.h"
 #endif
 #include "jit/AsmJS.h"
 #include "jit/IonCompartment.h"
@@ -337,6 +339,7 @@ class MacroAssembler : public MacroAssemblerSpecific
     }
     void PopRegsInMaskIgnore(RegisterSet set, RegisterSet ignore);
 
+#ifndef JS_CPU_PPC_OSX
     void branchIfFunctionHasNoScript(Register fun, Label *label) {
         // 16-bit loads are slow and unaligned 32-bit loads may be too so
         // perform an aligned 32-bit load and adjust the bitmask accordingly.
@@ -357,6 +360,7 @@ class MacroAssembler : public MacroAssemblerSpecific
         uint32_t bit = JSFunction::INTERPRETED << 16;
         branchTest32(Assembler::NonZero, address, Imm32(bit), label);
     }
+#endif
 
     using MacroAssemblerSpecific::Push;
 
@@ -985,6 +989,7 @@ JSOpToCondition(JSOp op, bool isSigned)
 
 typedef Vector<MIRType, 8> MIRTypeVector;
 
+#if(0) // bug 881882
 class ABIArgIter
 {
     ABIArgGenerator gen_;
@@ -1004,6 +1009,7 @@ class ABIArgIter
     MIRType mirType() const { JS_ASSERT(!done()); return types_[i_]; }
     uint32_t stackBytesConsumedSoFar() const { return gen_.stackBytesConsumedSoFar(); }
 };
+#endif
 
 } // namespace jit
 } // namespace js

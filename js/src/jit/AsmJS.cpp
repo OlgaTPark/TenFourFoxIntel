@@ -28,6 +28,8 @@ using namespace js::frontend;
 using namespace js::jit;
 using namespace mozilla;
 
+#if(0) // bug 881882
+
 /*****************************************************************************/
 // ParseNode utilities
 
@@ -6102,6 +6104,8 @@ CheckModule(JSContext *cx, TokenStream &ts, ParseNode *fn, ScopedJSDeletePtr<Asm
     return true;
 }
 
+#endif // JS_ASMJS
+
 static bool
 Warn(JSContext *cx, int code, const char *str)
 {
@@ -6117,6 +6121,9 @@ js::CompileAsmJS(JSContext *cx, TokenStream &ts, ParseNode *fn, const CompileOpt
                  ScriptSource *scriptSource, uint32_t bufStart, uint32_t bufEnd,
                  MutableHandleFunction moduleFun)
 {
+return Warn(cx, JSMSG_USE_ASM_TYPE_FAIL, "AsmJS not currently supported on PowerPC");
+#if(0) // bug 881882
+
     if (!JSC::MacroAssembler().supportsFloatingPoint())
         return Warn(cx, JSMSG_USE_ASM_TYPE_FAIL, "Disabled by lack of floating point support");
 
@@ -6168,6 +6175,7 @@ js::CompileAsmJS(JSContext *cx, TokenStream &ts, ParseNode *fn, const CompileOpt
     SetAsmJSModuleObject(moduleFun, moduleObj);
 
     return Warn(cx, JSMSG_USE_ASM_TYPE_OK, compilationTimeReport);
+#endif
 }
 
 JSBool
@@ -6175,9 +6183,12 @@ js::IsAsmJSCompilationAvailable(JSContext *cx, unsigned argc, Value *vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
 
+/*
     bool available = JSC::MacroAssembler().supportsFloatingPoint() &&
                      !cx->compartment()->debugMode() &&
                      cx->hasOption(JSOPTION_ASMJS);
+*/
+    bool available = false; // bug 881882
 
     args.rval().set(BooleanValue(available));
     return true;

@@ -196,7 +196,7 @@ public:
                                     JSPropertyDescriptor *desc, unsigned flags);
     static bool defineProperty(JSContext *cx, HandleObject wrapper, HandleId id,
                                PropertyDescriptor *desc,
-                               Handle<PropertyDescriptor> existingDesc, bool *defined);
+                               JS::Handle<PropertyDescriptor> existingDesc, bool *defined);
     static bool enumerateNames(JSContext *cx, HandleObject wrapper, unsigned flags,
                                AutoIdVector &props);
     static bool call(JSContext *cx, HandleObject wrapper,
@@ -242,7 +242,7 @@ public:
                                     JSPropertyDescriptor *desc, unsigned flags);
     static bool defineProperty(JSContext *cx, HandleObject wrapper, HandleId id,
                                PropertyDescriptor *desc,
-                               Handle<PropertyDescriptor> existingDesc, bool *defined);
+                               JS::Handle<PropertyDescriptor> existingDesc, bool *defined);
     static bool enumerateNames(JSContext *cx, HandleObject wrapper, unsigned flags,
                                AutoIdVector &props);
     static bool call(JSContext *cx, HandleObject wrapper,
@@ -1036,7 +1036,7 @@ XPCWrappedNativeXrayTraits::resolveOwnProperty(JSContext *cx, Wrapper &jsWrapper
 bool
 XPCWrappedNativeXrayTraits::defineProperty(JSContext *cx, HandleObject wrapper, HandleId id,
                                            PropertyDescriptor *desc,
-                                           Handle<PropertyDescriptor> existingDesc, bool *defined)
+                                           JS::Handle<PropertyDescriptor> existingDesc, bool *defined)
 {
     *defined = false;
     JSObject *holder = singleton.ensureHolder(cx, wrapper);
@@ -1193,7 +1193,7 @@ DOMXrayTraits::resolveOwnProperty(JSContext *cx, Wrapper &jsWrapper, HandleObjec
 bool
 DOMXrayTraits::defineProperty(JSContext *cx, HandleObject wrapper, HandleId id,
                               PropertyDescriptor *desc,
-                              Handle<PropertyDescriptor> existingDesc, bool *defined)
+                              JS::Handle<PropertyDescriptor> existingDesc, bool *defined)
 {
     if (!existingDesc.obj())
         return true;

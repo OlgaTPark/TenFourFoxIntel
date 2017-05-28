@@ -1027,7 +1027,9 @@ JSRuntime::setOwnerThread()
     if (nativeStackQuota)
         JS_SetNativeStackQuota(this, nativeStackQuota);
 #ifdef XP_MACOSX
+#ifdef JS_ION
     asmJSMachExceptionHandler.setCurrentThread();
+#endif
 #endif
 }
 
@@ -1046,7 +1048,9 @@ JSRuntime::clearOwnerThread()
     mainThread.nativeStackLimit = 0;
 #endif
 #ifdef XP_MACOSX
+#ifdef JS_ION
     asmJSMachExceptionHandler.clearCurrentThread();
+#endif
 #endif
 }
 

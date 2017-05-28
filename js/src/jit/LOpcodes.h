@@ -246,6 +246,8 @@
 # include "x64/LOpcodes-x64.h"
 #elif defined(JS_CPU_ARM)
 # include "arm/LOpcodes-arm.h"
+#elif defined(JS_CPU_PPC_OSX)
+# include "ppcosx/LOpcodes-ppc.h"
 #endif
 
 #define LIR_OPCODE_LIST(_)          \

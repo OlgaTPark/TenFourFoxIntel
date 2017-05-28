@@ -366,7 +366,7 @@ AC_CACHE_CHECK([whether .eh_frame section should be read-only],
     libffi_cv_ro_eh_frame, [
 	libffi_cv_ro_eh_frame=no
 	echo 'extern void foo (void); void bar (void) { foo (); foo (); }' > conftest.c
-	if $CC $CFLAGS -S -fpic -fexceptions -o conftest.s conftest.c > /dev/null 2>&1; then
+	if $CC $CFLAGS -S -fpic -o conftest.s conftest.c > /dev/null 2>&1; then
 	    if grep '.section.*eh_frame.*"a"' conftest.s > /dev/null; then
 		libffi_cv_ro_eh_frame=yes
 	    elif grep '.section.*eh_frame.*#alloc' conftest.c \

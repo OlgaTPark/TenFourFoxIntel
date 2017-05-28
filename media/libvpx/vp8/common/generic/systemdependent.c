@@ -28,6 +28,9 @@ typedef void (WINAPI *PGNSI)(LPSYSTEM_INFO);
 
 extern void vp8_arch_x86_common_init(VP8_COMMON *ctx);
 extern void vp8_arch_arm_common_init(VP8_COMMON *ctx);
+#if HAVE_ALTIVEC
+extern void vp8_arch_ppc_common_init(VP8_COMMON *ctx);
+#endif
 
 #if CONFIG_MULTITHREAD
 static int get_cpu_count()
@@ -185,6 +188,10 @@ void vp8_machine_specific_config(VP8_COMMON *ctx)
 
 #if ARCH_ARM
     vp8_arch_arm_common_init(ctx);
+#endif
+
+#if HAVE_ALTIVEC
+    vp8_arch_ppc_common_init(ctx);
 #endif
 
 #if CONFIG_MULTITHREAD

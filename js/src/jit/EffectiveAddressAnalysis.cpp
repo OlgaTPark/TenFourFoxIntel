@@ -9,6 +9,7 @@
 using namespace js;
 using namespace jit;
 
+#if(0) // bug 881882
 static void
 AnalyzeLsh(MBasicBlock *block, MLsh *lsh)
 {
@@ -86,6 +87,7 @@ AnalyzeLsh(MBasicBlock *block, MLsh *lsh)
     last->replaceAllUsesWith(eaddr);
     block->insertAfter(last, eaddr);
 }
+#endif // JS_ASMJS
 
 // This analysis converts patterns of the form:
 //   truncate(x + (y << {0,1,2,3}))
@@ -104,11 +106,13 @@ AnalyzeLsh(MBasicBlock *block, MLsh *lsh)
 bool
 EffectiveAddressAnalysis::analyze()
 {
+#if(0) // bug 881882
     for (ReversePostorderIterator block(graph_.rpoBegin()); block != graph_.rpoEnd(); block++) {
         for (MInstructionIterator i = block->begin(); i != block->end(); i++) {
             if (i->isLsh())
                 AnalyzeLsh(*block, i->toLsh());
         }
     }
+#endif // JS_ASMJS
     return true;
 }

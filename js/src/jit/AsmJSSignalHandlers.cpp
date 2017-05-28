@@ -16,6 +16,8 @@ using namespace js;
 using namespace js::jit;
 using namespace mozilla;
 
+#if(0) // bug 881882
+
 #if defined(XP_WIN)
 # define XMM_sig(p,i) ((p)->Xmm##i)
 # define EIP_sig(p) ((p)->Eip)
@@ -933,10 +935,12 @@ AsmJSFaultHandler(int signum, siginfo_t *info, void *context)
     }
 }
 # endif
+#endif // JS_ASMJS
 
 bool
 EnsureAsmJSSignalHandlersInstalled(JSRuntime *rt)
 {
+#if(0)
 #if defined(XP_MACOSX)
     // On OSX, each JSRuntime gets its own handler.
     return rt->asmJSMachExceptionHandler.installed() || rt->asmJSMachExceptionHandler.install(rt);
@@ -964,6 +968,8 @@ EnsureAsmJSSignalHandlersInstalled(JSRuntime *rt)
     lock.setHandlersInstalled();
 #endif
     return true;
+#endif // JS_ASMJS
+    return false;
 }
 
 // To interrupt execution of a JSRuntime, any thread may call
@@ -979,6 +985,7 @@ EnsureAsmJSSignalHandlersInstalled(JSRuntime *rt)
 void
 js::TriggerOperationCallbackForAsmJSCode(JSRuntime *rt)
 {
+#if(0) // bug 881882
     JS_ASSERT(rt->currentThreadOwnsOperationCallbackLock());
 
     AsmJSActivation *activation = rt->mainThread.asmJSActivationStackFromAnyThread();
@@ -995,6 +1002,7 @@ js::TriggerOperationCallbackForAsmJSCode(JSRuntime *rt)
     if (mprotect(module.functionCode(), module.functionBytes(), PROT_NONE))
         MOZ_CRASH();
 #endif
+#endif // JS_ASMJS
 }
 
 #ifdef MOZ_ASAN

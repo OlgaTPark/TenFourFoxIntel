@@ -102,7 +102,9 @@ size_t gStackChunkSize = 8192;
 #if defined(MOZ_ASAN) || (defined(DEBUG) && !defined(XP_WIN))
 size_t gMaxStackSize = 2 * 128 * sizeof(size_t) * 1024;
 #else
-size_t gMaxStackSize = 128 * sizeof(size_t) * 1024;
+//size_t gMaxStackSize = 128 * sizeof(size_t) * 1024;
+// TenFourFox NEEDS MOAR.
+size_t gMaxStackSize = 32768 * 1024;
 #endif
 
 #ifdef JS_THREADSAFE

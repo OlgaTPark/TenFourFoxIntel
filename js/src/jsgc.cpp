@@ -81,6 +81,11 @@
 # include <unistd.h>
 #endif
 
+/* for GetCPUCount() */
+#include <stdio.h>
+#include <sys/param.h>
+#include <sys/sysctl.h>
+
 #if JS_TRACE_LOGGING
 #include "TraceLogging.h"
 #endif
@@ -2164,6 +2169,7 @@ AssertBackgroundSweepingFinished(JSRuntime *rt)
 unsigned
 js::GetCPUCount()
 {
+#if(0)
     static unsigned ncpus = 0;
     if (ncpus == 0) {
 # ifdef XP_WIN
@@ -2171,11 +2177,24 @@ js::GetCPUCount()
         GetSystemInfo(&sysinfo);
         ncpus = unsigned(sysinfo.dwNumberOfProcessors);
 # else
+/*
         long n = sysconf(_SC_NPROCESSORS_ONLN);
         ncpus = (n > 0) ? unsigned(n) : 1;
+*/
+        int mib[2];
+        unsigned int maxproc = 1;
+        size_t len = sizeof(maxproc);
+
+        mib[0] = CTL_HW;
+        mib[1] = HW_NCPU;
+        if (sysctl(mib, 2, &maxproc, &len, NULL, NULL == -1))
+                maxproc = 1;
+        ncpus = unsigned(maxproc);
 # endif
     }
     return ncpus;
+#endif
+return 1;
 }
 #endif /* JS_THREADSAFE */
 

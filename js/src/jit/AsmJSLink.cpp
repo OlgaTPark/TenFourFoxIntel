@@ -23,6 +23,8 @@ using namespace js;
 using namespace js::jit;
 using namespace mozilla;
 
+#if(0) // bug 881882
+
 static bool
 LinkFail(JSContext *cx, const char *str)
 {
@@ -528,3 +530,22 @@ js::IsAsmJSModuleNative(js::Native native)
 {
     return native == LinkAsmJS;
 }
+#else
+bool
+js::IsAsmJSModuleNative(js::Native native)
+{
+    return false;
+}
+JSBool
+js::CallAsmJS(JSContext *cx, unsigned argc, Value *vp)
+{
+    JS_ASSERT(0);
+    return JS_FALSE;
+}
+JSBool
+js::LinkAsmJS(JSContext *cx, unsigned argc, JS::Value *vp)
+{
+    JS_ASSERT(0);
+    return JS_FALSE;
+}
+#endif // JS_ASMJS

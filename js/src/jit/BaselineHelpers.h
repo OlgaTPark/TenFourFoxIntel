@@ -15,6 +15,8 @@
 # include "x64/BaselineHelpers-x64.h"
 #elif defined(JS_CPU_ARM)
 # include "arm/BaselineHelpers-arm.h"
+#elif defined(JS_CPU_PPC_OSX)
+# include "ppcosx/BaselineHelpers-ppc.h"
 #else
 # error "Unknown architecture!"
 #endif

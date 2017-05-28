@@ -20,6 +20,8 @@
 # include "x64/Lowering-x64.h"
 #elif defined(JS_CPU_ARM)
 # include "arm/Lowering-arm.h"
+#elif defined(JS_CPU_PPC_OSX)
+# include "ppcosx/Lowering-ppc.h"
 #else
 # error "CPU!"
 #endif

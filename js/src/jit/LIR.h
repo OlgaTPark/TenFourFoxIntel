@@ -1440,6 +1440,8 @@ LAllocation::toRegister() const
 # include "shared/LIR-x86-shared.h"
 #elif defined(JS_CPU_ARM)
 # include "arm/LIR-arm.h"
+#elif defined(JS_CPU_PPC_OSX)
+# include "ppcosx/LIR-ppc.h"
 #endif
 
 #undef LIR_HEADER

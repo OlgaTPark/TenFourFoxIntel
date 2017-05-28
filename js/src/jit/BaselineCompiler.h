@@ -26,6 +26,8 @@
 # include "x86/BaselineCompiler-x86.h"
 #elif defined(JS_CPU_X64)
 # include "x64/BaselineCompiler-x64.h"
+#elif defined(JS_CPU_PPC_OSX)
+# include "ppcosx/BaselineCompiler-ppc.h"
 #else
 # include "arm/BaselineCompiler-arm.h"
 #endif

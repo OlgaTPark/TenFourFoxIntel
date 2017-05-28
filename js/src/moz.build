@@ -290,6 +290,20 @@ if CONFIG['ENABLE_ION']:
             'MoveEmitter-arm.cpp',
             'Trampoline-arm.cpp',
         ]
+    elif CONFIG['TARGET_CPU'].find('powerpc') != -1:
+        CPP_SOURCES += [
+            'Architecture-ppc.cpp',
+            'Assembler-ppc.cpp',
+            'Bailouts-ppc.cpp',
+            'BaselineCompiler-ppc.cpp',
+            'BaselineIC-ppc.cpp',
+            'CodeGenerator-ppc.cpp',
+            'IonFrames-ppc.cpp',
+            'Lowering-ppc.cpp',
+            'MacroAssembler-ppc.cpp',
+            'MoveEmitter-ppc.cpp',
+            'Trampoline-ppc.cpp',
+        ]
 
 if CONFIG['OS_ARCH'] == 'WINNT':
     CPP_SOURCES += [
@@ -312,6 +326,7 @@ if CONFIG['ENABLE_ION'] or CONFIG['ENABLE_YARR_JIT']:
         'ARMAssembler.cpp',
         'MacroAssemblerARM.cpp',
         'MacroAssemblerX86Common.cpp',
+	'PPCAssembler.cpp',
     ]
 
 if CONFIG['ENABLE_YARR_JIT']:

@@ -15,6 +15,8 @@
 # include "x64/Architecture-x64.h"
 #elif defined(JS_CPU_ARM)
 # include "arm/Architecture-arm.h"
+#elif defined(JS_CPU_PPC_OSX)
+# include "ppcosx/Architecture-ppc.h"
 #endif
 #include "FixedArityList.h"
 

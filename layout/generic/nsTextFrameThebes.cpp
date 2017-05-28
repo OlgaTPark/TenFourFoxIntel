@@ -6645,6 +6645,16 @@ nsTextFrame::PeekOffsetWord(bool aForward, bool aWordSelectEatSpace, bool aIsKey
     bool isPunctuation = cIter.IsPunctuation();
     bool isWhitespace = cIter.IsWhitespace();
     bool isWordBreakBefore = cIter.HaveWordBreakBefore();
+	isWordBreakBefore = isWhitespace; // 10.4Fx issue 122. WHY???
+/*
+fprintf(stderr, "isPunc %i isWhit %i isWBB %i\n",
+		(isPunctuation)
+		? 1 : 0,
+		(isWhitespace)
+		? 1 : 0,
+		(isWordBreakBefore)
+		? 1 : 0) ;
+*/
     if (aWordSelectEatSpace == isWhitespace && !aState->mSawBeforeType) {
       aState->SetSawBeforeType();
       aState->Update(isPunctuation, isWhitespace);

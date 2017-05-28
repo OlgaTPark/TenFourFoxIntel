@@ -1024,6 +1024,13 @@ class JSScript : public js::gc::Cell
 JS_STATIC_ASSERT(sizeof(JSScript::ArrayBitsT) * 8 >= JSScript::LIMIT);
 
 /* If this fails, add/remove padding within JSScript. */
+#if(0)
+template<int s> struct Wow;
+struct foo {
+    int a,b;
+};
+Wow<sizeof(JSScript)> wow;
+#endif
 JS_STATIC_ASSERT(sizeof(JSScript) % js::gc::CellSize == 0);
 
 namespace js {

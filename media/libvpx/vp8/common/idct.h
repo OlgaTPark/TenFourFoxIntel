@@ -33,6 +33,12 @@
 #include "arm/idct_arm.h"
 #endif
 
+/* Needs to be extended to work in 1.0
+#if HAVE_ALTIVEC
+#define vp8_idct_idct16 short_idct4x4llm_ppc
+#endif
+*/
+
 #ifndef vp8_idct_idct16
 #define vp8_idct_idct16 vp8_short_idct4x4llm_c
 #endif

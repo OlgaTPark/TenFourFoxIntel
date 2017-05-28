@@ -366,6 +366,11 @@ else
     AC_CHECK_PROGS(AR, ar, :)
     AC_CHECK_PROGS(LD, ld, :)
     AC_CHECK_PROGS(STRIP, strip, :)
+
+    # 10.4's strip won't work anymore
+    AC_MSG_WARN([Forcing strip to /opt/local/bin/strip])
+    STRIP="/opt/local/bin/strip"
+
     AC_CHECK_PROGS(WINDRES, windres, :)
     if test -z "$HOST_CC"; then
         HOST_CC='$(CC)'
@@ -1349,6 +1354,20 @@ MOZ_ARG_DISABLE_BOOL(os2-high-mem,
     MOZ_OS2_HIGH_MEMORY=1 )
 AC_SUBST(MOZ_OS2_HIGH_MEMORY)
 
+dnl =========================
+dnl G5 specific optimizations
+dnl =========================
+MOZ_ARG_ENABLE_BOOL(tenfourfox-g5,
+[  --enable-tenfourfox-g5
+                  Turn on G5 specific options for TenFourFox],
+    TENFOURFOX_G5=1)
+
+AC_SUBST(TENFOURFOX_G5)
+
+if test "$TENFOURFOX_G5"; then
+    AC_DEFINE(TENFOURFOX_G5)
+fi
+
 dnl ========================================================
 dnl = Use profiling compile flags
 dnl ========================================================
@@ -1496,7 +1515,7 @@ case "$target" in
 *-darwin*)
     MKSHLIB='$(CXX) $(CXXFLAGS) $(DSO_PIC_CFLAGS) $(DSO_LDOPTS) -o $@'
     MKCSHLIB='$(CC) $(CFLAGS) $(DSO_PIC_CFLAGS) $(DSO_LDOPTS) -o $@'
-    MOZ_OPTIMIZE_FLAGS="-O3 -fno-stack-protector"
+    MOZ_OPTIMIZE_FLAGS="-O3"
     CFLAGS="$CFLAGS -fno-common"
     CXXFLAGS="$CXXFLAGS -fno-common"
     DLL_SUFFIX=".dylib"
@@ -2108,6 +2127,16 @@ arm*-*)
     ENABLE_METHODJIT_TYPED_ARRAY=1
     ENABLE_YARR_JIT=1
     AC_DEFINE(JS_CPU_ARM)
+    AC_DEFINE(JS_NUNBOX32)
+    ;;
+powerpc*-darwin*)
+    ENABLE_METHODJIT=1
+    ENABLE_ION=1
+    ENABLE_MONOIC=1
+    ENABLE_POLYIC=1
+    ENABLE_METHODJIT_TYPED_ARRAY=1
+    ENABLE_YARR_JIT=1
+    AC_DEFINE(JS_CPU_PPC_OSX)
     AC_DEFINE(JS_NUNBOX32)
     ;;
 sparc*-*)
@@ -3282,7 +3311,8 @@ dnl = Disable building with debug info.
 dnl = Debugging is OFF by default
 dnl ========================================================
 if test -z "$MOZ_DEBUG_FLAGS"; then
-  MOZ_DEBUG_FLAGS="-g"
+dnl There is no way in hell we would ever use naked -g now.
+  MOZ_DEBUG_FLAGS="-gdwarf-2"
 fi
 
 MOZ_ARG_ENABLE_STRING(debug,
