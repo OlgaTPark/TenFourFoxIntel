@@ -2512,7 +2512,12 @@ jit::AnalyzeArgumentsUsage(JSContext* cx, JSScript* scriptArg)
     // and also simplifies handling of early returns.
     script->setNeedsArgsObj(true);
 
+/*
+See bug 995336. If we don't do this analysis, we suffer huge Call(fallback)
+penalties, even if Ion is not enabled.
     if (!jit::IsIonEnabled(cx) || !script->compileAndGo())
+*/
+    if (!script->compileAndGo())
         return true;
 
     static const uint32_t MAX_SCRIPT_SIZE = 10000;

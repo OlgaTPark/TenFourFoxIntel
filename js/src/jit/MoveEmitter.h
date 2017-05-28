@@ -11,6 +11,8 @@
 # include "jit/shared/MoveEmitter-x86-shared.h"
 #elif defined(JS_CODEGEN_ARM)
 # include "jit/arm/MoveEmitter-arm.h"
+#elif defined(JS_CODEGEN_PPC_OSX)
+# include "jit/ppcosx/MoveEmitter-ppc.h"
 #elif defined(JS_CODEGEN_MIPS)
 # include "jit/mips/MoveEmitter-mips.h"
 #else

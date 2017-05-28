@@ -145,7 +145,7 @@ class JS_FRIEND_API(BaseProxyHandler)
          * Called on creation of a proxy to determine whether its finalize
          * method can be finalized on the background thread.
          */
-        return true;
+        return false; //return true; // speculative fix
     }
 
     /* Policy enforcement traps.

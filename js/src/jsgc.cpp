@@ -221,6 +221,11 @@
 #include "vm/Stack-inl.h"
 #include "vm/String-inl.h"
 
+/* for GetCPUCount() */
+#include <stdio.h>
+#include <sys/param.h>
+#include <sys/sysctl.h>
+
 using namespace js;
 using namespace js::gc;
 
@@ -2176,8 +2181,19 @@ js::GetCPUCount()
         GetSystemInfo(&sysinfo);
         ncpus = unsigned(sysinfo.dwNumberOfProcessors);
 # else
+/*
         long n = sysconf(_SC_NPROCESSORS_ONLN);
         ncpus = (n > 0) ? unsigned(n) : 1;
+*/
+        int mib[2];
+        unsigned int maxproc = 1;
+        size_t len = sizeof(maxproc);
+
+        mib[0] = CTL_HW;
+        mib[1] = HW_NCPU;
+        if (sysctl(mib, 2, &maxproc, &len, nullptr, 0) == -1)
+                maxproc = 1;
+        ncpus = unsigned(maxproc);
 # endif
     }
     return ncpus;

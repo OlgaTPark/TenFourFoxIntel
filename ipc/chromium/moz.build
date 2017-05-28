@@ -204,6 +204,9 @@ if os_macosx:
         'src/base/worker_pool_mac.mm',
         'src/chrome/common/mach_ipc_mac.mm',
     ]
+    SOURCES += [
+        'src/base/CommonHMAC.c',
+    ]
     if not CONFIG['MOZ_NATIVE_LIBEVENT']:
         UNIFIED_SOURCES += [
             'src/third_party/libevent/kqueue.c',
@@ -277,8 +280,9 @@ if CONFIG['_MSC_VER']:
         'src/base/debug_on_start.cc',
     ]
 
-ost = CONFIG['OS_TEST']
-if ost.find('86') == -1 and ost.find('arm') == -1 and ost.find('mips') == -1:
+#ost = CONFIG['OS_TEST']
+#if ost.find('86') == -1 and ost.find('arm') == -1 and ost.find('mips') == -1:
+if CONFIG['_DONT_USE_INTERNAL_MUTEXES']:
     SOURCES += [
         'src/base/atomicops_internals_mutex.cc',
     ]

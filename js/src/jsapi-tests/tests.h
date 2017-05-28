@@ -266,7 +266,8 @@ class JSAPITest
     {
         const size_t MAX_STACK_SIZE =
 /* Assume we can't use more than 5e5 bytes of C stack by default. */
-#if (defined(DEBUG) && defined(__SUNPRO_CC))  || defined(JS_CPU_SPARC)
+/* TenFourFox needs a lot too. */
+#if (defined(DEBUG) && defined(__SUNPRO_CC))  || defined(JS_CPU_SPARC) || defined(JS_CPU_PPC_OSX)
             /*
              * Sun compiler uses a larger stack space for js::Interpret() with
              * debug.  Use a bigger gMaxStackSize to make "make check" happy.

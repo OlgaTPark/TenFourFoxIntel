@@ -1141,6 +1141,52 @@ IonScript::getOsiIndex(uint32_t disp) const
             return it;
     }
 
+#ifdef JS_CPU_PPC_OSX && !defined(_PPC970_)
+    // PPC currently uses the old JSC MacroAssembler constant pools, meaning
+    // they don't keep information for poolSizeBefore. If we failed to find
+    // an exact match, pick the displacement closest to disp that is greater
+    // than it. We could also try to fix CodeGeneratorShared::markOsiPoint().
+    OsiIndex *bestguess = nullptr;
+    int32_t bestdiff = 0;
+    int32_t maxdiff = 0;
+    for (const OsiIndex *it = osiIndices(), *end = osiIndices() + osiIndexEntries_;
+         it != end;
+         ++it)
+    {
+#if DEBUG
+        IonSpew(IonSpew_Invalidate, "!! getOsiIndex salvage %08x: trying %08x",
+            (uint32_t)disp, (uint32_t)it->returnPointDisplacement());
+#endif
+        if (it->returnPointDisplacement() > disp) {
+            if (!bestdiff || (it->returnPointDisplacement() - disp) <
+                    bestdiff) {
+                bestguess = it;
+                if (bestguess != osiIndices()) bestguess--;
+#if DEBUG
+        IonSpew(IonSpew_Invalidate, "!!! getOsiIndex current guess: %08x",
+            (uint32_t)bestguess->returnPointDisplacement());
+#endif
+                bestdiff = it->returnPointDisplacement() - disp;
+            }
+        }
+        if (!maxdiff || (it->returnPointDisplacement() - disp) > maxdiff)
+            maxdiff = (it->returnPointDisplacement() - disp);
+    }
+    if (bestguess) return bestguess;
+
+    // If greater than all of them, try the delta minus a call stanza.
+    // This situation occurs in function calls.
+    if (maxdiff < 0) {
+        maxdiff += -maxdiff + -maxdiff - PPC_CALL_STANZA_LENGTH;
+            // flip sign quick   
+#if DEBUG
+        IonSpew(IonSpew_Invalidate, "!! getOsiIndex desperation guess: %08x",
+            maxdiff);
+#endif
+        return getOsiIndex(maxdiff);
+    }
+#endif
+
     MOZ_ASSUME_UNREACHABLE("Failed to find OSI point return address");
 }
 

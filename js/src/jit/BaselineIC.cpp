@@ -760,7 +760,7 @@ ICStubCompiler::emitPostWriteBarrierSlot(MacroAssembler& masm, Register obj, Val
     masm.branchPtr(Assembler::AboveOrEqual, valReg, ImmWord(nursery.heapEnd()), &skipBarrier);
 
     // void PostWriteBarrier(JSRuntime* rt, JSObject* obj);
-#if defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_MIPS)
+#if defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_MIPS) || defined(JS_CODEGEN_PPC_OSX)
     saveRegs.add(BaselineTailCallReg);
 #endif
     saveRegs = GeneralRegisterSet::Intersect(saveRegs, GeneralRegisterSet::Volatile());
@@ -1995,8 +1995,16 @@ bool
 ICCompare_String::Compiler::generateStubCode(MacroAssembler& masm)
 {
     Label failure;
+#ifndef JS_CODEGEN_PPC_OSX
     masm.branchTestString(Assembler::NotEqual, R0, &failure);
     masm.branchTestString(Assembler::NotEqual, R1, &failure);
+#else
+    masm.x_li32(r0, JSVAL_TAG_STRING);
+    masm.xor_(r12, R0.typeReg(), r0);
+    masm.xor_(r0,  R1.typeReg(), r0);
+    masm.or_rc(r0, r0, r12); // r0 == R0.typeReg() == R1.typeReg()
+    masm.bc(Assembler::NonZero, &failure);
+#endif
 
     JS_ASSERT(IsEqualityOp(op));
 
@@ -2038,8 +2046,16 @@ bool
 ICCompare_Boolean::Compiler::generateStubCode(MacroAssembler& masm)
 {
     Label failure;
+#ifndef JS_CODEGEN_PPC_OSX
     masm.branchTestBoolean(Assembler::NotEqual, R0, &failure);
     masm.branchTestBoolean(Assembler::NotEqual, R1, &failure);
+#else
+    masm.x_li32(r0, JSVAL_TAG_BOOLEAN);
+    masm.xor_(r12, R0.typeReg(), r0);
+    masm.xor_(r0,  R1.typeReg(), r0);
+    masm.or_rc(r0, r0, r12); // r0 == R0.typeReg() == R1.typeReg()
+    masm.bc(Assembler::NonZero, &failure);
+#endif
 
     Register left = masm.extractInt32(R0, ExtractTemp0);
     Register right = masm.extractInt32(R1, ExtractTemp1);
@@ -2098,8 +2114,16 @@ bool
 ICCompare_Object::Compiler::generateStubCode(MacroAssembler& masm)
 {
     Label failure;
+#ifndef JS_CODEGEN_PPC_OSX
     masm.branchTestObject(Assembler::NotEqual, R0, &failure);
     masm.branchTestObject(Assembler::NotEqual, R1, &failure);
+#else
+    masm.x_li32(r0, JSVAL_TAG_OBJECT);
+    masm.xor_(r12, R0.typeReg(), r0);
+    masm.xor_(r0,  R1.typeReg(), r0);
+    masm.or_rc(r0, r0, r12); // r0 == R0.typeReg() == R1.typeReg()
+    masm.bc(Assembler::NonZero, &failure);
+#endif
 
     JS_ASSERT(IsEqualityOp(op));
 
@@ -2204,8 +2228,17 @@ ICCompare_Int32WithBoolean::Compiler::generateStubCode(MacroAssembler& masm)
         boolVal = R0;
         int32Val = R1;
     }
+#ifndef JS_CODEGEN_PPC_OSX
     masm.branchTestBoolean(Assembler::NotEqual, boolVal, &failure);
     masm.branchTestInt32(Assembler::NotEqual, int32Val, &failure);
+#else
+    masm.x_li32(r0, JSVAL_TAG_INT32);
+    masm.x_li32(r12, JSVAL_TAG_BOOLEAN);
+    masm.xor_(r0, int32Val.typeReg(), r0);
+    masm.xor_(r12, boolVal.typeReg(), r12);
+    masm.or_rc(r0, r0, r12);
+    masm.bc(Assembler::NonZero, &failure);
+#endif
 
     if (op_ == JSOP_STRICTEQ || op_ == JSOP_STRICTNE) {
         // Ints and booleans are never strictly equal, always strictly not equal.
@@ -2343,6 +2376,7 @@ ICToBool_Int32::Compiler::generateStubCode(MacroAssembler& masm)
     Label failure;
     masm.branchTestInt32(Assembler::NotEqual, R0, &failure);
 
+#ifndef JS_CODEGEN_PPC_OSX
     Label ifFalse;
     masm.branchTestInt32Truthy(false, R0, &ifFalse);
 
@@ -2351,6 +2385,14 @@ ICToBool_Int32::Compiler::generateStubCode(MacroAssembler& masm)
 
     masm.bind(&ifFalse);
     masm.moveValue(BooleanValue(false), R0);
+#else
+    // Convert int32 to 0|1, and tag it as a boolean.
+    // CWG implies that the optimal form stores to an intermediate register.
+    masm.addic(r0, R0.payloadReg(), -1);
+    masm.subfe(r12, r0, R0.payloadReg());
+    masm.x_li32(R0.typeReg(), JSVAL_TAG_BOOLEAN);
+    masm.x_mr(R0.payloadReg(), r12);
+#endif
     EmitReturnFromIC(masm);
 
     // Failure case - jump to next stub
@@ -2369,6 +2411,7 @@ ICToBool_String::Compiler::generateStubCode(MacroAssembler& masm)
     Label failure;
     masm.branchTestString(Assembler::NotEqual, R0, &failure);
 
+#ifndef JS_CODEGEN_PPC_OSX
     Label ifFalse;
     masm.branchTestStringTruthy(false, R0, &ifFalse);
 
@@ -2377,6 +2420,21 @@ ICToBool_String::Compiler::generateStubCode(MacroAssembler& masm)
 
     masm.bind(&ifFalse);
     masm.moveValue(BooleanValue(false), R0);
+#else
+    // Get the length word, turn that into 0|1, and tag it as a boolean.
+    JS_ASSERT(PPC_IMMOFFS_OK(JSString::offsetOfLengthAndFlags()));
+    masm.lwz(tempRegister, R0.payloadReg(),
+        JSString::offsetOfLengthAndFlags());
+    size_t mask = (0xFFFFFFFF << JSString::LENGTH_SHIFT);
+    masm.x_li32(addressTempRegister, mask);
+    // We don't need the Rc bit, so save a cycle, ride a cowboy. I guess.
+    masm.and_(tempRegister, tempRegister, addressTempRegister);
+
+    // Now treat as an int32.
+    masm.addic(r12, r0, -1);
+    masm.x_li32(R0.typeReg(), JSVAL_TAG_BOOLEAN);
+    masm.subfe(R0.payloadReg(), r12, r0);
+#endif
     EmitReturnFromIC(masm);
 
     // Failure case - jump to next stub
@@ -2416,6 +2474,7 @@ ICToBool_Double::Compiler::generateStubCode(MacroAssembler& masm)
     Label failure, ifTrue;
     masm.branchTestDouble(Assembler::NotEqual, R0, &failure);
     masm.unboxDouble(R0, FloatReg0);
+#ifndef JS_CODEGEN_PPC_OSX
     masm.branchTestDoubleTruthy(true, FloatReg0, &ifTrue);
 
     masm.moveValue(BooleanValue(false), R0);
@@ -2423,6 +2482,18 @@ ICToBool_Double::Compiler::generateStubCode(MacroAssembler& masm)
 
     masm.bind(&ifTrue);
     masm.moveValue(BooleanValue(true), R0);
+#else
+    // NaN evaluates to false, dammit, so we have to use the FPU for the
+    // comparison instead of working directly on the double ourselves. Since
+    // testDoubleTruthy compares to zero, we extract
+    // truth for !=, and use that routine to test Unordered.
+    (void)masm.testDoubleTruthy(true, FloatReg0);
+    // The corrected bit is now in CR0 EQ, so just do that and save a branch.
+    masm.mfcr(r0); // warning: microcoded on G5
+    masm.x_li32(R0.typeReg(), JSVAL_TAG_BOOLEAN);
+    masm.rlwinm(r12, r0, 3, 31, 31); // get CR0[EQ]
+    masm.xori(R0.payloadReg(), r12, 1); // flip sign into the payload reg
+#endif
     EmitReturnFromIC(masm);
 
     // Failure case - jump to next stub
@@ -2784,8 +2855,16 @@ bool
 ICBinaryArith_StringConcat::Compiler::generateStubCode(MacroAssembler& masm)
 {
     Label failure;
+#ifndef JS_CODEGEN_PPC_OSX
     masm.branchTestString(Assembler::NotEqual, R0, &failure);
     masm.branchTestString(Assembler::NotEqual, R1, &failure);
+#else
+    masm.x_li32(r0, JSVAL_TAG_STRING);
+    masm.xor_(r12, R0.typeReg(), r0);
+    masm.xor_(r0,  R1.typeReg(), r0);
+    masm.or_rc(r0, r0, r12); // r0 == R0.typeReg() == R1.typeReg()
+    masm.bc(Assembler::NonZero, &failure);
+#endif
 
     // Restore the tail call register.
     EmitRestoreTailCallReg(masm);
@@ -2861,6 +2940,7 @@ bool
 ICBinaryArith_StringObjectConcat::Compiler::generateStubCode(MacroAssembler& masm)
 {
     Label failure;
+#ifndef JS_CODEGEN_PPC_OSX
     if (lhsIsString_) {
         masm.branchTestString(Assembler::NotEqual, R0, &failure);
         masm.branchTestObject(Assembler::NotEqual, R1, &failure);
@@ -2868,6 +2948,19 @@ ICBinaryArith_StringObjectConcat::Compiler::generateStubCode(MacroAssembler& mas
         masm.branchTestObject(Assembler::NotEqual, R0, &failure);
         masm.branchTestString(Assembler::NotEqual, R1, &failure);
     }
+#else
+    if (lhsIsString_) {
+        masm.x_li32(r0, JSVAL_TAG_STRING);
+        masm.x_li32(r12, JSVAL_TAG_OBJECT);
+    } else {
+        masm.x_li32(r0, JSVAL_TAG_OBJECT);
+        masm.x_li32(r12, JSVAL_TAG_STRING);
+    }
+    masm.xor_(r0, R0.typeReg(), r0);
+    masm.xor_(r12, R1.typeReg(), r12);
+    masm.or_rc(r0, r0, r12);
+    masm.bc(Assembler::NonZero, &failure);
+#endif
 
     // Restore the tail call register.
     EmitRestoreTailCallReg(masm);
@@ -2933,6 +3026,8 @@ bool
 ICBinaryArith_BooleanWithInt32::Compiler::generateStubCode(MacroAssembler& masm)
 {
     Label failure;
+    
+#ifndef JS_CODEGEN_PPC_OSX
     if (lhsIsBool_)
         masm.branchTestBoolean(Assembler::NotEqual, R0, &failure);
     else
@@ -2942,6 +3037,21 @@ ICBinaryArith_BooleanWithInt32::Compiler::generateStubCode(MacroAssembler& masm)
         masm.branchTestBoolean(Assembler::NotEqual, R1, &failure);
     else
         masm.branchTestInt32(Assembler::NotEqual, R1, &failure);
+#else
+    if (lhsIsBool_ && rhsIsBool_) {
+        // Save an instruction, ride a cowboy.
+        masm.x_li32(r0, JSVAL_TAG_BOOLEAN);
+        masm.xor_(r12, R0.typeReg(), r0);
+        masm.xor_(r0,  R1.typeReg(), r0);
+    } else {
+        masm.x_li32(r0, (lhsIsBool_) ? JSVAL_TAG_BOOLEAN : JSVAL_TAG_INT32);
+        masm.x_li32(r12, (rhsIsBool_) ? JSVAL_TAG_BOOLEAN : JSVAL_TAG_INT32);
+        masm.xor_(r0, R0.typeReg(), r0);
+        masm.xor_(r12, R1.typeReg(), r12);
+    }
+    masm.or_rc(r0, r0, r12);
+    masm.bc(Assembler::NonZero, &failure);
+#endif
 
     Register lhsReg = lhsIsBool_ ? masm.extractBoolean(R0, ExtractTemp0)
                                  : masm.extractInt32(R0, ExtractTemp0);
@@ -4229,8 +4339,17 @@ ICGetElemNativeCompiler::generateStubCode(MacroAssembler& masm)
     Label failurePopR1;
     bool popR1 = false;
 
+#ifndef JS_CODEGEN_PPC_OSX
     masm.branchTestObject(Assembler::NotEqual, R0, &failure);
     masm.branchTestString(Assembler::NotEqual, R1, &failure);
+#else
+    masm.x_li32(r0, JSVAL_TAG_OBJECT);
+    masm.x_li32(r12, JSVAL_TAG_STRING);
+    masm.xor_(r0, R0.typeReg(), r0);
+    masm.xor_(r12, R1.typeReg(), r12);
+    masm.or_rc(r0, r0, r12);
+    masm.bc(Assembler::NonZero, &failure);
+#endif
 
     GeneralRegisterSet regs(availableGeneralRegs(2));
     Register scratchReg = regs.takeAny();
@@ -4450,8 +4569,17 @@ bool
 ICGetElem_String::Compiler::generateStubCode(MacroAssembler& masm)
 {
     Label failure;
+#ifndef JS_CODEGEN_PPC_OSX
     masm.branchTestString(Assembler::NotEqual, R0, &failure);
     masm.branchTestInt32(Assembler::NotEqual, R1, &failure);
+#else
+    masm.x_li32(r0, JSVAL_TAG_STRING);
+    masm.x_li32(r12, JSVAL_TAG_INT32);
+    masm.xor_(r0, R0.typeReg(), r0);
+    masm.xor_(r12, R1.typeReg(), r12);
+    masm.or_rc(r0, r0, r12);
+    masm.bc(Assembler::NonZero, &failure);
+#endif
 
     GeneralRegisterSet regs(availableGeneralRegs(2));
     Register scratchReg = regs.takeAny();
@@ -4504,8 +4632,17 @@ bool
 ICGetElem_Dense::Compiler::generateStubCode(MacroAssembler& masm)
 {
     Label failure;
+#ifndef JS_CODEGEN_PPC_OSX
     masm.branchTestObject(Assembler::NotEqual, R0, &failure);
     masm.branchTestInt32(Assembler::NotEqual, R1, &failure);
+#else
+    masm.x_li32(r0, JSVAL_TAG_OBJECT);
+    masm.x_li32(r12, JSVAL_TAG_INT32);
+    masm.xor_(r0, R0.typeReg(), r0);
+    masm.xor_(r12, R1.typeReg(), r12);
+    masm.or_rc(r0, r0, r12);
+    masm.bc(Assembler::NonZero, &failure);
+#endif
 
     GeneralRegisterSet regs(availableGeneralRegs(2));
     Register scratchReg = regs.takeAny();
@@ -4720,6 +4857,7 @@ ICGetElem_Arguments::Compiler::generateStubCode(MacroAssembler& masm)
     GeneralRegisterSet regs(availableGeneralRegs(2));
     Register scratchReg = regs.takeAny();
 
+#ifndef JS_CODEGEN_PPC_OSX
     // Guard on input being an arguments object.
     masm.branchTestObject(Assembler::NotEqual, R0, &failure);
     Register objReg = masm.extractObject(R0, ExtractTemp0);
@@ -4727,6 +4865,18 @@ ICGetElem_Arguments::Compiler::generateStubCode(MacroAssembler& masm)
 
     // Guard on index being int32
     masm.branchTestInt32(Assembler::NotEqual, R1, &failure);
+#else
+    // Test guards simultaneously.
+    masm.x_li32(r0, JSVAL_TAG_OBJECT);
+    masm.x_li32(r12, JSVAL_TAG_INT32);
+    masm.xor_(r0, R0.typeReg(), r0);
+    masm.xor_(r12, R1.typeReg(), r12);
+    masm.or_rc(r0, r0, r12);
+    masm.bc(Assembler::NonZero, &failure);
+
+    Register objReg = masm.extractObject(R0, ExtractTemp0);
+    masm.branchTestObjClass(Assembler::NotEqual, objReg, scratchReg, clasp, &failure);
+#endif
     Register idxReg = masm.extractInt32(R1, ExtractTemp1);
 
     // Get initial ArgsObj length value.
@@ -5191,8 +5341,17 @@ ICSetElem_Dense::Compiler::generateStubCode(MacroAssembler& masm)
     // Stack = { ... rhs-value, <return-addr>? }
     Label failure;
     Label failureUnstow;
+#ifndef JS_CODEGEN_PPC_OSX
     masm.branchTestObject(Assembler::NotEqual, R0, &failure);
     masm.branchTestInt32(Assembler::NotEqual, R1, &failure);
+#else
+    masm.x_li32(r0, JSVAL_TAG_OBJECT);
+    masm.x_li32(r12, JSVAL_TAG_INT32);
+    masm.xor_(r0, R0.typeReg(), r0);
+    masm.xor_(r12, R1.typeReg(), r12);
+    masm.or_rc(r0, r0, r12);
+    masm.bc(Assembler::NonZero, &failure);
+#endif
 
     GeneralRegisterSet regs(availableGeneralRegs(2));
     Register scratchReg = regs.takeAny();
@@ -5350,8 +5509,17 @@ ICSetElemDenseAddCompiler::generateStubCode(MacroAssembler& masm)
     // Stack = { ... rhs-value, <return-addr>? }
     Label failure;
     Label failureUnstow;
+#ifndef JS_CODEGEN_PPC_OSX
     masm.branchTestObject(Assembler::NotEqual, R0, &failure);
     masm.branchTestInt32(Assembler::NotEqual, R1, &failure);
+#else
+    masm.x_li32(r0, JSVAL_TAG_OBJECT);
+    masm.x_li32(r12, JSVAL_TAG_INT32);
+    masm.xor_(r0, R0.typeReg(), r0);
+    masm.xor_(r12, R1.typeReg(), r12);
+    masm.or_rc(r0, r0, r12);
+    masm.bc(Assembler::NonZero, &failure);
+#endif
 
     GeneralRegisterSet regs(availableGeneralRegs(2));
     Register scratchReg = regs.takeAny();

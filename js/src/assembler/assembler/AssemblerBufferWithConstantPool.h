@@ -260,12 +260,34 @@ public:
         correctDeltas(4, 8);
     }
 
+    void putIntWithMultipleConstantInts(uint32_t insn, int nr_ints, uint32_t constant = 0)
+    {
+        flushIfNoSpaceFor(4, nr_ints*4);
+        
+        m_loadOffsets.append(AssemblerBuffer::size());
+        
+        AssemblerBuffer::putInt(AssemblerType::patchConstantPoolLoad(insn, m_numConsts));
+        for (int i = 0; i < nr_ints; i++) {
+            m_pool[m_numConsts] = constant;
+            m_mask[m_numConsts] = static_cast<char>(UniqueConst);
+            ++m_numConsts;
+        }
+        
+        correctDeltas(4, nr_ints*4);
+    }
+
     // This flushing mechanism can be called after any unconditional jumps.
     void flushWithoutBarrier(bool isForced = false)
     {
         // Flush if constant pool is more than 60% full to avoid overuse of this function.
         if (isForced || (5 * m_numConsts * sizeof(uint32_t)) > (3 * maxPoolSize))
             flushConstantPool(false);
+    }
+
+    // This forces the pool to be allocated immediately
+    void forceConstantPoolFlush()
+    {
+        flushConstantPool(true);
     }
 
     // return the address of the pool; we really shouldn't be using this.

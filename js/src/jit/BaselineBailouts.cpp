@@ -349,7 +349,7 @@ struct BaselineStackBuilder
         JS_ASSERT(BaselineFrameReg == FramePointer);
         priorOffset -= sizeof(void*);
         return virtualPointerAtStackOffset(priorOffset);
-#elif defined(JS_CODEGEN_X64) || defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_MIPS)
+#elif defined(JS_CODEGEN_X64) || defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_MIPS) || defined(JS_CODEGEN_PPC_OSX)
         // On X64, ARM and MIPS, the frame pointer save location depends on
         // the caller of the rectifier frame.
         BufferPointer<IonRectifierFrameLayout> priorFrame =

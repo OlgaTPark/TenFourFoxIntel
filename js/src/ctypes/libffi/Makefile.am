@@ -177,7 +177,7 @@ endif
 libffi_convenience_la_SOURCES = $(libffi_la_SOURCES)
 nodist_libffi_convenience_la_SOURCES = $(nodist_libffi_la_SOURCES)
 
-AM_CFLAGS = -Wall -g -fexceptions
+AM_CFLAGS = -Wall -g -fno-exceptions
 if FFI_DEBUG
 # Build debug. Define FFI_DEBUG on the commandline so that, when building with
 # MSVC, it can link against the debug CRT.

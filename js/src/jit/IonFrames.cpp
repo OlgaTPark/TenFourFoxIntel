@@ -249,6 +249,22 @@ JitFrameIterator::baselineScriptAndPc(JSScript** scriptRes, jsbytecode** pcRes) 
             *pcRes = icEntry->pc(script);
             return;
         }
+#if JS_CODEGEN_PPC_OSX
+        // See BaselineJIT.cpp for why.
+        uint8_t *altAddr = (uint8_t *)
+            ((uint32_t)retAddr + PPC_CALL_STANZA_LENGTH - 4);
+#if DEBUG
+        IonSpew(IonSpew_BaselineIC,
+            "!!!trying alternative PPC return address %08x -> %08x",
+                (uint32_t)retAddr, (uint32_t)altAddr);
+#endif
+        icEntry = script->baselineScript()->maybeICEntryFromReturnAddress(
+            altAddr);
+        if (icEntry) {
+            *pcRes = icEntry->pc(script);
+            return;
+        }
+#endif
 
         // If not, the return address _must_ be the start address of an op, which can
         // be computed from the pc mapping table.

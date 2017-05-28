@@ -18,6 +18,10 @@ DARWIN_EXE_LDFLAGS += -pagezero_size 10000 -image_base 100000000
 endif
 endif
 
+# TenFourFox needs a lot of stack for JIT (10.4Fx issues 37, 63, 85, ...)
+# This grotesque hack ensures this flag only gets added to ld here.
+LIBS += -Wl,-stack_size,0x10000000 -framework Carbon
+
 ifdef QEMU_EXE
 MOZ_POST_PROGRAM_COMMAND = $(topsrcdir)/build/qemu-wrap --qemu $(QEMU_EXE) --libdir $(CROSS_LIB)
 endif

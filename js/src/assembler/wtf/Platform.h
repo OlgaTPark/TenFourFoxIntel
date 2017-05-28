@@ -1055,6 +1055,9 @@
 #define ENABLE_JIT 1
 #endif
 
+// SO THERE. Force on for TenFourFox.
+#define ENABLE_JIT 1
+
 /* Currently only implemented for JSVALUE64, only tested on WTF_PLATFORM_MAC */
 #if ENABLE_JIT && WTF_USE_JSVALUE64 && WTF_PLATFORM_MAC
 #define ENABLE_DFG_JIT 1

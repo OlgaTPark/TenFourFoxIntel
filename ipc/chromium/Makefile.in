@@ -9,6 +9,14 @@ ACDEFINES =
 ifndef MOZ_NATIVE_LIBEVENT # {
 vpath %.c \
   $(srcdir)/src/third_party/libevent \
+  $(srcdir)/src/base \
+  $(NULL)
+endif # }
+
+ifdef MOZ_NATIVE_LIBEVENT # {
+# for CommonHMAC.c
+vpath %.c \
+  $(srcdir)/src/base \
   $(NULL)
 endif # }
 

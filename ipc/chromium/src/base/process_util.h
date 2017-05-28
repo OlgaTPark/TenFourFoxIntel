@@ -68,6 +68,7 @@ enum ProcessArchitecture {
 inline ProcessArchitecture GetCurrentProcessArchitecture()
 {
   base::ProcessArchitecture currentArchitecture;
+#if(0)
 #if defined(ARCH_CPU_X86)
   currentArchitecture = base::PROCESS_ARCH_I386;
 #elif defined(ARCH_CPU_X86_64)
@@ -76,6 +77,10 @@ inline ProcessArchitecture GetCurrentProcessArchitecture()
   currentArchitecture = base::PROCESS_ARCH_PPC;
 #elif defined(ARCH_CPU_ARMEL)
   currentArchitecture = base::PROCESS_ARCH_ARM;
+#endif
+#else
+  // We are PPC only, so that's what we return.
+  currentArchitecture = base::PROCESS_ARCH_PPC;
 #endif
   return currentArchitecture;
 }

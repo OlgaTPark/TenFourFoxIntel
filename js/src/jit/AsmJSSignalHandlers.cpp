@@ -17,6 +17,8 @@ using namespace mozilla;
 
 using JS::GenericNaN;
 
+#if(0) // bug 881882
+
 #if defined(XP_WIN)
 # define XMM_sig(p,i) ((p)->Xmm##i)
 # define EIP_sig(p) ((p)->Eip)
@@ -974,10 +976,12 @@ AsmJSFaultHandler(int signum, siginfo_t* info, void* context)
 #if !defined(XP_MACOSX)
 static bool sHandlersInstalled = false;
 #endif
+#endif
 
 bool
 js::EnsureAsmJSSignalHandlersInstalled(JSRuntime* rt)
 {
+#if(0)
     if (IsSignalHandlingBroken())
         return false;
 
@@ -1008,6 +1012,8 @@ js::EnsureAsmJSSignalHandlersInstalled(JSRuntime* rt)
     sHandlersInstalled = true;
 #endif
     return true;
+#endif // JS_ASMJS
+    return false;
 }
 
 // To interrupt execution of a JSRuntime, any thread may call
@@ -1023,6 +1029,7 @@ js::EnsureAsmJSSignalHandlersInstalled(JSRuntime* rt)
 void
 js::RequestInterruptForAsmJSCode(JSRuntime* rt)
 {
+#if(0)
     JS_ASSERT(rt->currentThreadOwnsInterruptLock());
 
     AsmJSActivation* activation = rt->mainThread.asmJSActivationStackFromAnyThread();
@@ -1030,6 +1037,7 @@ js::RequestInterruptForAsmJSCode(JSRuntime* rt)
         return;
 
     activation->module().protectCode(rt);
+#endif
 }
 
 #if defined(MOZ_ASAN) && defined(JS_STANDALONE)

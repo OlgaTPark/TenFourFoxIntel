@@ -15,6 +15,8 @@
 # include "jit/x64/BaselineRegisters-x64.h"
 #elif defined(JS_CODEGEN_ARM)
 # include "jit/arm/BaselineRegisters-arm.h"
+#elif defined(JS_CODEGEN_PPC_OSX)
+# include "jit/ppcosx/BaselineRegisters-ppc.h"
 #elif defined(JS_CODEGEN_MIPS)
 # include "jit/mips/BaselineRegisters-mips.h"
 #else

@@ -108,7 +108,9 @@ static size_t gStackChunkSize = 8192;
 #if defined(MOZ_ASAN) || (defined(DEBUG) && !defined(XP_WIN))
 static size_t gMaxStackSize = 2 * 128 * sizeof(size_t) * 1024;
 #else
-static size_t gMaxStackSize = 128 * sizeof(size_t) * 1024;
+//static size_t gMaxStackSize = 128 * sizeof(size_t) * 1024;
+// TenFourFox NEEDS MOAR.
+static size_t gMaxStackSize = 32768 * 1024;
 #endif
 
 /*

@@ -1229,8 +1229,14 @@ class LSafepoint : public TempObject
     bool hasNunboxType(LAllocation type) const {
         if (type.isArgument())
             return true;
+#if JS_CODEGEN_PPC_OSX
+        // We're big-endian!
+        if (type.isStackSlot() && hasValueSlot(type.toStackSlot()->slot()))
+            return true;
+#else
         if (type.isStackSlot() && hasValueSlot(type.toStackSlot()->slot() + 1))
             return true;
+#endif
         for (size_t i = 0; i < nunboxParts_.length(); i++) {
             if (nunboxParts_[i].type == type)
                 return true;
@@ -1261,8 +1267,14 @@ class LSafepoint : public TempObject
     bool hasNunboxPayload(LAllocation payload) const {
         if (payload.isArgument())
             return true;
+#if JS_CODEGEN_PPC_OSX
+        // Dammit, we're still big-endian!
+        if (payload.isStackSlot() && hasValueSlot(payload.toStackSlot()->slot() + 1))
+            return true;
+#else
         if (payload.isStackSlot() && hasValueSlot(payload.toStackSlot()->slot()))
             return true;
+#endif
         for (size_t i = 0; i < nunboxParts_.length(); i++) {
             if (nunboxParts_[i].payload == payload)
                 return true;
@@ -1594,6 +1606,8 @@ LAllocation::toRegister() const
 # include "jit/shared/LIR-x86-shared.h"
 #elif defined(JS_CODEGEN_ARM)
 # include "jit/arm/LIR-arm.h"
+#elif defined(JS_CODEGEN_PPC_OSX)
+# include "jit/ppcosx/LIR-ppc.h"
 #elif defined(JS_CODEGEN_MIPS)
 # include "jit/mips/LIR-mips.h"
 #else

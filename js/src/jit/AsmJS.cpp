@@ -56,6 +56,8 @@ using JS::GenericNaN;
 
 static const size_t LIFO_ALLOC_PRIMARY_CHUNK_SIZE = 1 << 12;
 
+#if(0) // bug 881882
+
 /*****************************************************************************/
 // ParseNode utilities
 
@@ -7042,6 +7044,8 @@ CheckModule(ExclusiveContext* cx, AsmJSParser& parser, ParseNode* stmtList,
     return true;
 }
 
+#endif // JS_ASMJS
+
 static bool
 Warn(AsmJSParser& parser, int errorNumber, const char* str)
 {
@@ -7049,6 +7053,7 @@ Warn(AsmJSParser& parser, int errorNumber, const char* str)
     return false;
 }
 
+#if(0)
 static bool
 EstablishPreconditions(ExclusiveContext* cx, AsmJSParser& parser)
 {
@@ -7090,9 +7095,17 @@ NoExceptionPending(ExclusiveContext* cx)
     return !cx->isJSContext() || !cx->asJSContext()->isExceptionPending();
 }
 
+#endif // JS_ASMJS
+
 bool
 js::CompileAsmJS(ExclusiveContext* cx, AsmJSParser& parser, ParseNode* stmtList, bool* validated)
 {
+*validated = false;
+Warn(parser,
+    JSMSG_USE_ASM_TYPE_FAIL, "AsmJS not currently supported on PowerPC");
+return !cx->isJSContext() || !cx->asJSContext()->isExceptionPending();
+#if(0) // bug 881882
+
     *validated = false;
 
     if (!EstablishPreconditions(cx, parser))
@@ -7118,6 +7131,7 @@ js::CompileAsmJS(ExclusiveContext* cx, AsmJSParser& parser, ParseNode* stmtList,
     *validated = true;
     Warn(parser, JSMSG_USE_ASM_TYPE_OK, compilationTimeReport.get());
     return NoExceptionPending(cx);
+#endif
 }
 
 bool
@@ -7125,13 +7139,15 @@ js::IsAsmJSCompilationAvailable(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
 
+/*
     // See EstablishPreconditions.
     bool available = cx->jitSupportsFloatingPoint() &&
                      cx->signalHandlersInstalled() &&
                      cx->gcSystemPageSize() == AsmJSPageSize &&
                      !cx->compartment()->debugMode() &&
                      cx->runtime()->options().asmJS();
-
+*/
+	bool available = false; // bug 881882
     args.rval().set(BooleanValue(available));
     return true;
 }

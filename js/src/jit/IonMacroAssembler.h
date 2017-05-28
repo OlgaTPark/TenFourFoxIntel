@@ -17,6 +17,8 @@
 # include "jit/x64/MacroAssembler-x64.h"
 #elif defined(JS_CODEGEN_ARM)
 # include "jit/arm/MacroAssembler-arm.h"
+#elif defined(JS_CODEGEN_PPC_OSX)
+# include "jit/ppcosx/MacroAssembler-ppc.h"
 #elif defined(JS_CODEGEN_MIPS)
 # include "jit/mips/MacroAssembler-mips.h"
 #else
@@ -511,6 +513,7 @@ class MacroAssembler : public MacroAssemblerSpecific
     }
     void PopRegsInMaskIgnore(RegisterSet set, RegisterSet ignore);
 
+#ifndef JS_CODEGEN_PPC_OSX
     void branchIfFunctionHasNoScript(Register fun, Label* label) {
         // 16-bit loads are slow and unaligned 32-bit loads may be too so
         // perform an aligned 32-bit load and adjust the bitmask accordingly.
@@ -531,6 +534,7 @@ class MacroAssembler : public MacroAssemblerSpecific
         uint32_t bit = JSFunction::INTERPRETED << 16;
         branchTest32(Assembler::NonZero, address, Imm32(bit), label);
     }
+#endif
 
     void branchIfNotInterpretedConstructor(Register fun, Register scratch, Label* label);
 

@@ -513,6 +513,20 @@ ICEntry&
 BaselineScript::icEntryFromReturnOffset(CodeOffsetLabel returnOffset)
 {
     ICEntry* result = maybeICEntryFromReturnOffset(returnOffset);
+#if JS_CODEGEN_PPC_OSX
+    if (!result) {
+        // If one was not found, this could be a LR-linked call which returns
+        // to an address *inside* the call stanza.
+        CodeOffsetLabel altOffset(
+            (uint32_t)returnOffset.offset() + PPC_CALL_STANZA_LENGTH - 4);
+#if DEBUG
+        IonSpew(IonSpew_BaselineIC,
+            "  !!!trying alternative PPC offset %i -> %i",
+            returnOffset.offset(), altOffset.offset());
+#endif
+        result = maybeICEntryFromReturnOffset(altOffset);
+    }
+#endif
     JS_ASSERT(result);
     return *result;
 }

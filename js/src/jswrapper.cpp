@@ -183,6 +183,7 @@ CrossCompartmentWrapper::~CrossCompartmentWrapper()
 
 bool Wrapper::finalizeInBackground(Value priv)
 {
+return false; // speculative fix
     if (!priv.isObject())
         return true;
 

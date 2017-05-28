@@ -80,8 +80,13 @@ BaselineCompiler::compile()
     AutoTraceLog logScript(logger, TraceLogCreateTextId(logger, script));
     AutoTraceLog logCompile(logger, TraceLogger::BaselineCompilation);
 
-    if (!script->ensureHasTypes(cx) || !script->ensureHasAnalyzedArgsUsage(cx))
+    if (!script->ensureHasTypes(cx))
         return Method_Error;
+
+    if (script->argumentsHasVarBinding()) {
+        if (!script->ensureHasAnalyzedArgsUsage(cx))
+            return Method_Error;
+    }
 
     // Pin analysis info during compilation.
     types::AutoEnterAnalysis autoEnterAnalysis(cx);
@@ -428,6 +433,9 @@ BaselineCompiler::emitOutOfLinePostBarrierSlot()
     masm.push(lr);
 #elif defined(JS_CODEGEN_MIPS)
     masm.push(ra);
+#elif defined(JS_CODEGEN_PPC_OSX)
+    masm.x_mflr(r0);
+    masm.push(r0);
 #endif
 
     masm.setupUnalignedABICall(2, scratch);
@@ -712,12 +720,31 @@ BaselineCompiler::emitDebugTrap()
 
     // Emit patchable call to debug trap handler.
     JitCode* handler = cx->runtime()->jitRuntime()->debugTrapHandler(cx);
+#ifndef JS_CODEGEN_PPC_OSX
     mozilla::DebugOnly<CodeOffsetLabel> offset = masm.toggledCall(handler, enabled);
 
 #ifdef DEBUG
     // Patchable call offset has to match the pc mapping offset.
     PCMappingEntry& entry = pcMappingEntries_.back();
     JS_ASSERT((&offset)->offset() == entry.nativeOffset);
+#endif
+#else
+    // PPC branching with constant pools can cause a situation where a
+    // flush will occur *right at* a toggledCall emitted for a debug trap,
+    // and the returned offset will be after the pool and not match the
+    // predicted PC. tests/debug/Environment-find-06.js is one such example.
+    // In that circumstance, adjust the PCMappingEntry so it matches.
+    CodeOffsetLabel offset = masm.toggledCall(handler, enabled);
+    PCMappingEntry &entry = pcMappingEntries_[pcMappingEntries_.length() - 1];
+    if((&offset)->offset() != entry.nativeOffset) {
+#ifdef DEBUG
+        IonSpew(IonSpew_Codegen,
+            "flush occurred, manually adjusting PC %08x to %08x\n",
+                entry.nativeOffset,
+                (&offset)->offset());
+#endif
+        entry.nativeOffset = (&offset)->offset();
+    }
 #endif
 
     // Add an IC entry for the return offset -> pc mapping.

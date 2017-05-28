@@ -415,6 +415,11 @@ CodeGeneratorShared::markOsiPoint(LOsiPoint* ins, uint32_t* callPointOffset)
 
     ensureOsiSpace();
 
+#if JS_CPU_PPC_OSX
+    // sigh
+    masm.forceConstantPoolFlushWithBarrier();
+#endif
+
     *callPointOffset = masm.currentOffset();
     SnapshotOffset so = ins->snapshot()->snapshotOffset();
     return osiIndices_.append(OsiIndex(*callPointOffset, so));
