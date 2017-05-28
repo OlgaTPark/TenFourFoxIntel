@@ -29,7 +29,7 @@ if CONFIG['OS_ARCH'] == 'WINNT':
         'mozPoisonWriteWin.cpp',
         'perfprobe.cpp',
     ]
-elif CONFIG['OS_ARCH'] == 'Darwin':
+elif CONFIG['OS_ARCH'] == 'DarwinOnIntelWhichSucksTurgidMooseWanky':
     CPP_SOURCES += [
         'mozPoisonWriteBase.cpp',
         'mozPoisonWriteMac.cpp',

@@ -32,4 +32,10 @@ nsUTF8UtilsSSE2.$(OBJ_SUFFIX): CXXFLAGS+=-xarch=sse2 -xO4
 endif
 endif
 
+ifdef TENFOURFOX_VMX
+ifdef GNU_CC
+nsUTF8UtilsVMX.$(OBJ_SUFFIX): CXXFLAGS+=-faltivec
+endif
+endif
+
 DEFINES		+= -D_IMPL_NS_COM

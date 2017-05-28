@@ -85,7 +85,8 @@ _SharedStub:
         addi     r6, r1,  44    // 3, pointer to saved GPRs
         addi     r7, r1,  72    // 4, pointer to saved FPRs
 
-        bl      L_PrepareAndDispatch$stub
+        //bl      L_PrepareAndDispatch$stub
+        bl      _PrepareAndDispatch
                                 // Do it
         nop                     // Leave room for linker magic
 

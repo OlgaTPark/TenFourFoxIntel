@@ -72,7 +72,11 @@ nsresult SetFileCreatorCode(CFURLRef url, OSType creatorCode)
 
   NSAutoreleasePool* ap = [[NSAutoreleasePool alloc] init];
   NSDictionary* dict = [NSDictionary dictionaryWithObject:[NSNumber numberWithUnsignedLong:creatorCode] forKey:NSFileHFSCreatorCode];
+#if(0)
   BOOL success = [[NSFileManager defaultManager] setAttributes:dict ofItemAtPath:[(NSURL*)url path] error:nil];
+#else
+  BOOL success = [[NSFileManager defaultManager] changeFileAttributes:dict atPath:[(NSURL*)url path]];
+#endif
   [ap release];
   return (success ? NS_OK : NS_ERROR_FAILURE);
 
@@ -110,7 +114,11 @@ nsresult SetFileTypeCode(CFURLRef url, OSType typeCode)
 
   NSAutoreleasePool* ap = [[NSAutoreleasePool alloc] init];
   NSDictionary* dict = [NSDictionary dictionaryWithObject:[NSNumber numberWithUnsignedLong:typeCode] forKey:NSFileHFSTypeCode];
+#if(0)
   BOOL success = [[NSFileManager defaultManager] setAttributes:dict ofItemAtPath:[(NSURL*)url path] error:nil];
+#else
+  BOOL success = [[NSFileManager defaultManager] changeFileAttributes:dict atPath:[(NSURL*)url path]];
+#endif
   [ap release];
   return (success ? NS_OK : NS_ERROR_FAILURE);
 

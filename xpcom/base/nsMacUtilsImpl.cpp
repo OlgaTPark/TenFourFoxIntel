@@ -12,6 +12,7 @@ NS_IMPL_ISUPPORTS1(nsMacUtilsImpl, nsIMacUtils)
 
 nsresult nsMacUtilsImpl::GetArchString(nsAString& archString)
 {
+#if (0)
   if (!mBinaryArchs.IsEmpty()) {
     archString.Assign(mBinaryArchs);
     return NS_OK;
@@ -84,6 +85,9 @@ nsresult nsMacUtilsImpl::GetArchString(nsAString& archString)
   }
 
   archString.Assign(mBinaryArchs);
+#else
+  archString.Assign(NS_LITERAL_STRING("ppc"));
+#endif
 
   return (archString.IsEmpty() ? NS_ERROR_FAILURE : NS_OK);
 }

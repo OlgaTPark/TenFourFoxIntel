@@ -25,5 +25,10 @@ if CONFIG['INTEL_ARCHITECTURE']:
         'nsUTF8UtilsSSE2.cpp',
     ]
 
+if CONFIG['TENFOURFOX_VMX']:
+    CPP_SOURCES += [
+        'nsUTF8UtilsVMX.cpp',
+    ]
+
 LIBRARY_NAME = 'string_s'
 

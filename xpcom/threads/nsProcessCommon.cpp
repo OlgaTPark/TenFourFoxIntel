@@ -33,7 +33,7 @@
 #include "nsLiteralString.h"
 #include "nsReadableUtils.h"
 #else
-#ifdef XP_MACOSX
+#if(0) // #ifdef XP_MACOSX // we don't have spawn.h on 10.4.
 #include <crt_externs.h>
 #include <spawn.h>
 #include <sys/wait.h>
@@ -45,6 +45,9 @@
 using namespace mozilla;
 
 #ifdef XP_MACOSX
+typedef int cpu_type_t; // we don't have cpu_type* on 10.4.
+#define CPU_TYPE_ANY           ((cpu_type_t) -1)
+#define CPU_TYPE_POWERPC       ((cpu_type_t) 18)
 cpu_type_t pref_cpu_types[2] = {
 #if defined(__i386__)
                                  CPU_TYPE_X86,
@@ -72,7 +75,7 @@ nsProcess::nsProcess()
     , mObserver(nullptr)
     , mWeakObserver(nullptr)
     , mExitValue(-1)
-#if !defined(XP_MACOSX)
+#if 1 // !defined(XP_MACOSX) // we need this for 10.4.
     , mProcess(nullptr)
 #endif
 {
@@ -248,7 +251,7 @@ void nsProcess::Monitor(void *arg)
             return;
     }
 #else
-#ifdef XP_MACOSX
+#if 0 // def XP_MACOSX // 10.4
     int exitCode = -1;
     int status = 0;
     if (waitpid(process->mPid, &status, 0) == process->mPid) {
@@ -268,7 +271,7 @@ void nsProcess::Monitor(void *arg)
     // Lock in case Kill or GetExitCode are called during this
     {
         MutexAutoLock lock(process->mLock);
-#if !defined(XP_MACOSX)
+#if 1 // !defined(XP_MACOSX) // 10.4
         process->mProcess = nullptr;
 #endif
         process->mExitValue = exitCode;
@@ -469,7 +472,7 @@ nsProcess::RunProcess(bool blocking, char **my_argv, nsIObserver* observer,
         PR_Free(cmdLine);
 
     mPid = GetProcessId(mProcess);
-#elif defined(XP_MACOSX)
+#elif (0) // defined(XP_MACOSX) // we don't have spawn.h on 10.4.
     // Initialize spawn attributes.
     posix_spawnattr_t spawnattr;
     if (posix_spawnattr_init(&spawnattr) != 0) {
@@ -564,7 +567,7 @@ nsProcess::Kill()
 #if defined(PROCESSMODEL_WINAPI)
         if (TerminateProcess(mProcess, 0) == 0)
             return NS_ERROR_FAILURE;
-#elif defined(XP_MACOSX)
+#elif (0) // defined(XP_MACOSX) // 10.4
         if (kill(mPid, SIGKILL) != 0)
             return NS_ERROR_FAILURE;
 #else

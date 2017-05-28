@@ -41,7 +41,8 @@ __NS_InvokeByIndex:
 	mr	r4,r6
 
 	stwu	r1,-24(r1)	
-	bl	L_invoke_count_words$stub
+#	bl	L_invoke_count_words$stub
+	bl	_invoke_count_words
 	lwz	r1,0(r1)
 
 # prepare args for 'invoke_copy_to_stack' call
@@ -60,7 +61,8 @@ __NS_InvokeByIndex:
 	
 # create "temporary" stack frame for _invoke_copy_to_stack to operate in.
 	stwu	r1,-40(r1)
-	bl	L_invoke_copy_to_stack$stub
+#	bl	L_invoke_copy_to_stack$stub
+	bl	_invoke_copy_to_stack
 # remove temporary stack frame.
 	lwz	r1,0(r1)
 

@@ -1,3 +1,4 @@
+#ifdef NS_LEOPARD_AND_LATER
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* vim: set ts=2 sw=2 et tw=80: */
 /* This Source Code Form is subject to the terms of the Mozilla Public
@@ -4252,3 +4253,4 @@ TextInputHandlerBase::EnsureSecureEventInputDisabled()
     TextInputHandlerBase::DisableSecureEventInput();
   }
 }
+#endif

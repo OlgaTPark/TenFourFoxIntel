@@ -718,6 +718,12 @@ GfxInfoBase::GetFeatureStatusImpl(int32_t aFeature,
     return NS_OK;
   }
 
+  // Shortcut this logic for TenFourFox: we don't support *anything*
+  // right now.
+  *aStatus = nsIGfxInfo::FEATURE_BLOCKED_OS_VERSION;
+  return NS_OK;
+#if(0)
+
   // If an operating system was provided by the derived GetFeatureStatusImpl,
   // grab it here. Otherwise, the OS is unknown.
   OperatingSystem os = DRIVER_OS_UNKNOWN;
@@ -759,6 +765,7 @@ GfxInfoBase::GetFeatureStatusImpl(int32_t aFeature,
   }
 
   return NS_OK;
+#endif
 }
 
 NS_IMETHODIMP
