@@ -8,6 +8,8 @@
 
 #include <ApplicationServices/ApplicationServices.h>
 
+typedef float CGFloat; // 10.4
+
 #include "2D.h"
 #include "Rect.h"
 #include "PathCG.h"
@@ -171,6 +173,12 @@ private:
   IntSize mSize;
   CGColorSpaceRef mColorSpace;
   CGContextRef mCg;
+
+  // Class member to remember which function has CGFontGlyphGetBBoxes.
+  bool (*CGFontGetGlyphBBoxesPtr)
+	(CGFontRef, const CGGlyph[], size_t, CGRect[]);
+  // Ditto for CGContextGetTypePtr.
+  unsigned int (*CGContextGetTypePtr) (CGContextRef);
 
   /**
    * The image buffer, if the buffer is owned by this class.

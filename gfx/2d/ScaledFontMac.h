@@ -9,6 +9,11 @@
 #import <ApplicationServices/ApplicationServices.h>
 #include "2D.h"
 
+// For 10.4
+typedef unsigned int PRUint32;
+typedef int PRInt32;
+#include "../thebes/PhonyCoreText.h"
+
 #include "ScaledFontBase.h"
 
 namespace mozilla {

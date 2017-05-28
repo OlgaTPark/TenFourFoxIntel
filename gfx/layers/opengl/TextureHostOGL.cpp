@@ -80,6 +80,7 @@ CreateTextureHostOGL(const SurfaceDescriptor& aDesc,
       result = new StreamTextureHostOGL(aFlags, desc);
       break;
     }
+#if(0)
 #ifdef XP_MACOSX
     case SurfaceDescriptor::TSurfaceDescriptorMacIOSurface: {
       const SurfaceDescriptorMacIOSurface& desc =
@@ -87,6 +88,7 @@ CreateTextureHostOGL(const SurfaceDescriptor& aDesc,
       result = new MacIOSurfaceTextureHostOGL(aFlags, desc);
       break;
     }
+#endif
 #endif
 #ifdef MOZ_WIDGET_GONK
     case SurfaceDescriptor::TNewSurfaceDescriptorGralloc: {
@@ -534,6 +536,7 @@ StreamTextureSourceOGL::RetrieveTextureFromStream()
                                        : SurfaceFormat::R8G8B8X8;
       break;
     }
+#if(0)
 #ifdef XP_MACOSX
     case SharedSurfaceType::IOSurface: {
       SharedSurface_IOSurface* glTexSurf = SharedSurface_IOSurface::Cast(sharedSurf);
@@ -544,6 +547,7 @@ StreamTextureSourceOGL::RetrieveTextureFromStream()
                                        : SurfaceFormat::R8G8B8X8;
       break;
     }
+#endif
 #endif
     case SharedSurfaceType::Basic: {
       toUpload = SharedSurface_Basic::Cast(sharedSurf)->GetData();

@@ -77,12 +77,18 @@ using mozilla::Preferences;
 // The size of the worker JS allocation threshold in MB. May be changed via pref.
 #define WORKER_DEFAULT_ALLOCATION_THRESHOLD 30
 
+#ifndef __ppc__
 // The C stack size. We use the same stack size on all platforms for
 // consistency.
 #define WORKER_STACK_SIZE 256 * sizeof(size_t) * 1024
 
 // Half the size of the actual C stack, to be safe.
 #define WORKER_CONTEXT_NATIVE_STACK_LIMIT 128 * sizeof(size_t) * 1024
+#else
+// PPC needs a little bigger, though we reduced this for v26.
+#define WORKER_STACK_SIZE 1024 * sizeof(size_t) * 1024
+#define WORKER_CONTEXT_NATIVE_STACK_LIMIT 512 * sizeof(size_t) * 1024
+#endif
 
 // The maximum number of threads to use for workers, overridable via pref.
 #define MAX_WORKERS_PER_DOMAIN 10

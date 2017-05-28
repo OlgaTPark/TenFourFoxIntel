@@ -17,6 +17,7 @@ CreateTextureHostBasic(const SurfaceDescriptor& aDesc,
                        ISurfaceAllocator* aDeallocator,
                        TextureFlags aFlags)
 {
+#if(0)
 #ifdef XP_MACOSX
   if (aDesc.type() == SurfaceDescriptor::TSurfaceDescriptorMacIOSurface) {
     const SurfaceDescriptorMacIOSurface& desc =
@@ -24,6 +25,7 @@ CreateTextureHostBasic(const SurfaceDescriptor& aDesc,
     RefPtr<TextureHost> result = new MacIOSurfaceTextureHostBasic(aFlags, desc);
     return result;
   }
+#endif
 #endif
   return CreateBackendIndependentTextureHost(aDesc, aDeallocator, aFlags);
 }

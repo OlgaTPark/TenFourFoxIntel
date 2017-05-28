@@ -40,6 +40,8 @@
 
 #if CAIRO_HAS_QUARTZ_SURFACE
 
+#define CGFloat float
+
 #include <ApplicationServices/ApplicationServices.h>
 
 CAIRO_BEGIN_DECLS

@@ -1026,6 +1026,7 @@ class GFX2D_API Factory
 {
 public:
   static bool HasSSE2();
+  static bool HasVMX();
 
   /* Make sure that the given dimensions don't overflow a 32-bit signed int
    * using 4 bytes per pixel; optionally, make sure that either dimension

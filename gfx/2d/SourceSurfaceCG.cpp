@@ -354,6 +354,9 @@ SourceSurfaceCGBitmapContext::~SourceSurfaceCGBitmapContext()
 
 SourceSurfaceCGIOSurfaceContext::SourceSurfaceCGIOSurfaceContext(DrawTargetCG *aDrawTarget)
 {
+#if(1)
+  fprintf(stderr, "SourceSurfaceCGIOSurfaceContext not supported on 10.4\n");
+#else
   CGContextRef cg = (CGContextRef)aDrawTarget->GetNativeSurface(NativeSurfaceType::CGCONTEXT_ACCELERATED);
 
   RefPtr<MacIOSurface> surf = MacIOSurface::IOSurfaceContextGetSurface(cg);
@@ -377,6 +380,7 @@ SourceSurfaceCGIOSurfaceContext::SourceSurfaceCGIOSurfaceContext(DrawTargetCG *a
   memcpy(mData, ioData, ioHeight*(bytesPerRow));
   mStride = bytesPerRow;
   surf->Unlock();
+#endif
 }
 
 void SourceSurfaceCGIOSurfaceContext::EnsureImage() const

@@ -184,6 +184,16 @@ Factory::HasSSE2()
 }
 
 bool
+Factory::HasVMX()
+{
+#ifdef TENFOURFOX_VMX
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool
 Factory::CheckSurfaceSize(const IntSize &sz, int32_t limit)
 {
   if (sz.width < 0 || sz.height < 0) {

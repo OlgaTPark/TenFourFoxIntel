@@ -9,6 +9,9 @@
 
 #include "SkAdvancedTypefaceMetrics.h"
 #include "SkTypes.h"
+typedef unsigned int PRUint32;
+typedef int PRInt32;
+#include "../../../../thebes/PhonyCoreText.h"
 
 #if defined(SK_BUILD_FOR_WIN)
 #include <dwrite.h>

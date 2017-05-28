@@ -71,11 +71,13 @@ ImageFactory::CreateImage(ImageFormat aFormat,
     img = new SharedTextureImage();
     return img.forget();
   }
+#if(0)
 #ifdef XP_MACOSX
   if (aFormat == ImageFormat::MAC_IOSURFACE) {
     img = new MacIOSurfaceImage();
     return img.forget();
   }
+#endif
 #endif
 #ifdef XP_WIN
   if (aFormat == ImageFormat::D3D9_RGB32_TEXTURE) {

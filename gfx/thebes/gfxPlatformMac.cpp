@@ -68,20 +68,35 @@ DisableFontActivation()
 
 gfxPlatformMac::gfxPlatformMac()
 {
+    mOSXVersion = 0;
+ 
+    if (nsCocoaFeatures::OnSnowLeopardOrLater()) // backout bug 850408
     DisableFontActivation();
     mFontAntiAliasingThreshold = ReadAntiAliasingThreshold();
 
+#if(0)
     uint32_t canvasMask = BackendTypeBit(BackendType::CAIRO) |
                           BackendTypeBit(BackendType::SKIA) |
                           BackendTypeBit(BackendType::COREGRAPHICS);
     uint32_t contentMask = BackendTypeBit(BackendType::COREGRAPHICS);
     InitBackendPrefs(canvasMask, BackendType::COREGRAPHICS,
                      contentMask, BackendType::COREGRAPHICS);
+#else
+    // The cg target is implemented but has various problems on 10.4 we
+    // have to solve first.
+    uint32_t canvasMask = BackendTypeBit(BackendType::CAIRO) |
+                          BackendTypeBit(BackendType::COREGRAPHICS);
+    uint32_t contentMask = canvasMask;
+    InitBackendPrefs(canvasMask, BackendType::CAIRO,
+                     contentMask, BackendType::CAIRO);
+#endif
 }
 
 gfxPlatformMac::~gfxPlatformMac()
 {
+#if(0)
     gfxCoreTextShaper::Shutdown();
+#endif
 }
 
 gfxPlatformFontList*
@@ -207,7 +222,9 @@ gfxPlatformMac::IsFontFormatSupported(nsIURI *aFontURI, uint32_t aFormatFlags)
     if (aFormatFlags & (gfxUserFontSet::FLAG_FORMAT_WOFF     |
                         gfxUserFontSet::FLAG_FORMAT_OPENTYPE | 
                         gfxUserFontSet::FLAG_FORMAT_TRUETYPE | 
-                        gfxUserFontSet::FLAG_FORMAT_TRUETYPE_AAT)) {
+                        //gfxUserFontSet::FLAG_FORMAT_TRUETYPE_AAT)) {
+			// We do not support AAT in TenFourFox (issue 5).
+			0)) {
         return true;
     }
 
@@ -476,6 +493,7 @@ gfxPlatformMac::GetPlatformCMSOutputProfile(void* &mem, size_t &size)
     mem = nullptr;
     size = 0;
 
+#if(0)
     CGColorSpaceRef cspace = ::CGDisplayCopyColorSpace(::CGMainDisplayID());
     if (!cspace) {
         cspace = ::CGColorSpaceCreateDeviceRGB();
@@ -505,4 +523,86 @@ gfxPlatformMac::GetPlatformCMSOutputProfile(void* &mem, size_t &size)
     }
 
     ::CFRelease(iccp);
+#else
+    // 10.4 lacks ::CGColorSpaceCopyICCProfile, so we need an equivalent.
+    CMProfileRef cmProfile;
+    CMProfileLocation *location;
+    UInt32 locationSize;
+
+    CGDirectDisplayID displayID = CGMainDisplayID();
+    CMError err = CMGetProfileByAVID((CMDisplayIDType)displayID, &cmProfile);
+    if (err != noErr)
+		return;
+
+    // get the size of location
+    err = NCMGetProfileLocation(cmProfile, nullptr, &locationSize);
+    if (err != noErr)
+        return;
+        
+    // allocate enough room for location
+    location = static_cast<CMProfileLocation*>(malloc(locationSize));
+    if (!location) {
+    	CMCloseProfile(cmProfile);
+    	return;
+    }
+    err = NCMGetProfileLocation(cmProfile, location, &locationSize);
+    if (err != noErr) {
+    	free(location);
+    	CMCloseProfile(cmProfile);
+    	return;
+    }
+    
+    char path[512];
+    bool path_ok = false;
+    size_t rsize = 0;
+
+    switch (location->locType) {
+    case cmFileBasedProfile: {
+    	// We need to support this, particularly on 10.4 which has Classic.
+        FSRef fsRef;
+        if (!FSpMakeFSRef(&location->u.fileLoc.spec, &fsRef)) {
+            if (!FSRefMakePath(&fsRef, reinterpret_cast<UInt8*>(path), sizeof(path))) {
+				path_ok = true;
+			}
+		}
+		break;
+	}
+	case cmPathBasedProfile: {
+		path_ok = true;
+		break;
+	}
+	default:
+		NS_WARNING("Unsupported ColorSync profile location not supported");
+		break;
+	}
+	
+	
+    if (path_ok) {
+#ifdef DEBUG
+	fprintf(stderr, "Loading ColorSync profile: %s\n",
+		(location->locType == cmPathBasedProfile) ?
+			location->u.pathLoc.path : path);
+#endif
+	rsize = qcms_size_of_data(
+		(location->locType == cmPathBasedProfile) ?
+			location->u.pathLoc.path : path);
+#ifdef DEBUG
+	fprintf(stderr, "Size of profile: %i\n", rsize);
+#endif
+    	if (rsize) {
+       		mem = malloc(rsize);
+		qcms_data_from_path(
+		(location->locType == cmPathBasedProfile) ?
+			location->u.pathLoc.path : path, &mem, &size);
+#ifdef DEBUG
+		if (size != rsize)
+			fprintf(stderr, "Odd: size %i != rsize %i\n",
+				size, rsize);
+#endif
+    	}
+    }
+    free(location);
+    CMCloseProfile(cmProfile);
+    return;
+#endif
 }

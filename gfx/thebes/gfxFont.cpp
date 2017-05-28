@@ -945,12 +945,16 @@ gfxFontFamily::FindFontForStyle(const gfxFontStyle& aFontStyle,
         uint8_t faceIndex = (wantItalic ? kItalicMask : 0) |
                             (wantBold ? kBoldMask : 0);
 
+// Paranoia checks here
+gfxFontEntry *fe ;
+if (faceIndex < mAvailableFonts.Length()) {
         // if the desired style is available, return it directly
-        gfxFontEntry *fe = mAvailableFonts[faceIndex];
+        /* gfxFontEntry * */ fe = mAvailableFonts[faceIndex];
         if (fe) {
             // no need to set aNeedsSyntheticBold here as we matched the boldness request
             return fe;
         }
+}
 
         // order to check fallback faces in a simple family, depending on requested style
         static const uint8_t simpleFallbacks[4][3] = {
@@ -963,6 +967,7 @@ gfxFontFamily::FindFontForStyle(const gfxFontStyle& aFontStyle,
 
         for (uint8_t trial = 0; trial < 3; ++trial) {
             // check remaining faces in order of preference to find the first that actually exists
+            if (order[trial] < mAvailableFonts.Length())
             fe = mAvailableFonts[order[trial]];
             if (fe) {
                 aNeedsSyntheticBold = wantBold && !fe->IsBold();
@@ -3695,10 +3700,16 @@ gfxFont::ShapeText(gfxContext      *aContext,
                                         aScript, aShapedText);
     }
 
+/* We do not support a PlatformShaper in 10.4Fx. */
+#if(0)
     if (!ok && mHarfBuzzShaper && !aPreferPlatformShaping) {
         if (gfxPlatform::GetPlatform()->UseHarfBuzzForScript(aScript)) {
+#else
+    if (!ok && mHarfBuzzShaper)
+#endif
             ok = mHarfBuzzShaper->ShapeText(aContext, aText, aOffset, aLength,
                                             aScript, aShapedText);
+#if(0)
         }
     }
 
@@ -3712,6 +3723,7 @@ gfxFont::ShapeText(gfxContext      *aContext,
                                             aScript, aShapedText);
         }
     }
+#endif
 
     PostShapingFixup(aContext, aText, aOffset, aLength, aShapedText);
 

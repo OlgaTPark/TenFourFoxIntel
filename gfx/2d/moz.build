@@ -122,8 +122,16 @@ UNIFIED_SOURCES += [
 
 if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
     SOURCES += [
+        'CTGradient.m',
+        'CTGradientCPP.mm',
         'MacIOSurface.cpp',
         'QuartzSupport.mm',
+    ]
+
+if CONFIG['TENFOURFOX_VMX']:
+    DEFINES['USE_VMX'] = True
+    SOURCES += [
+        'BlurVMX.cpp',
     ]
 
 FAIL_ON_WARNINGS = True

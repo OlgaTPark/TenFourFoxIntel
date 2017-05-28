@@ -55,9 +55,12 @@ public:
     NSOpenGLPixelFormat *PixelFormat()
     {
         if (mPixelFormat == nullptr) {
+// This doesn't work at all on 10.4 now.
+#if(0)
             NSOpenGLPixelFormatAttribute attribs[] = {
                 NSOpenGLPFAAccelerated,
-                NSOpenGLPFAAllowOfflineRenderers,
+		// 10.4 doesn't have this.
+                //NSOpenGLPFAAllowOfflineRenderers,
                 NSOpenGLPFADoubleBuffer,
                 0
             };
@@ -67,6 +70,7 @@ public:
             }
 
             mPixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
+#endif
         }
 
         return mPixelFormat;
@@ -136,8 +140,10 @@ GLContextCGL::MakeCurrentImpl(bool aForce)
         // If swapInt is 1, then glSwapBuffers will block and wait for a vblank signal.
         // When we're iterating as fast as possible, however, we want a non-blocking
         // glSwapBuffers, which will happen when swapInt==0.
+#if(0)
         GLint swapInt = gfxPrefs::LayoutFrameRate() == 0 ? 0 : 1;
         [mContext setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
+#endif
     }
     return true;
 }

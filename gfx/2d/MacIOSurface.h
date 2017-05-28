@@ -6,6 +6,7 @@
 
 #ifndef MacIOSurface_h__
 #define MacIOSurface_h__
+#if(0)
 #ifdef XP_MACOSX
 #include <QuartzCore/QuartzCore.h>
 #include <dlfcn.h>
@@ -172,5 +173,6 @@ public:
   } sLibraryUnloader;
 };
 
+#endif
 #endif
 #endif

@@ -10,7 +10,7 @@
 
 #include "2D.h"
 
-class MacIOSurface;
+//class MacIOSurface;
 
 namespace mozilla {
 namespace gfx {
@@ -177,7 +177,7 @@ private:
 
   SurfaceFormat mFormat;
   mutable CGImageRef mImage;
-  MacIOSurface* mIOSurface;
+  //MacIOSurface* mIOSurface;
 
   void *mData;
   int32_t mStride;

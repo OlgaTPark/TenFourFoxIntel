@@ -7,6 +7,7 @@
 #define gfxMacPlatformFontList_H_
 
 #include <CoreFoundation/CoreFoundation.h>
+#include <Carbon/Carbon.h>
 
 #include "mozilla/MemoryReporting.h"
 #include "nsDataHashtable.h"
@@ -31,13 +32,27 @@ public:
                    bool aIsStandardFace = false);
 
     // for use with data fonts
+#if(0)
     MacOSFontEntry(const nsAString& aPostscriptName, CGFontRef aFontRef,
+#else
+    MacOSFontEntry(const nsAString& aPostscriptName, ATSFontRef aFontRef,
+#endif
                    uint16_t aWeight, uint16_t aStretch, uint32_t aItalicStyle,
+                   ATSFontContainerRef aContainerRef, // 10.4Fx
                    bool aIsUserFont, bool aIsLocal);
 
     virtual ~MacOSFontEntry() {
+	if (mFontRefInitialized)
         ::CGFontRelease(mFontRef);
+	/* Per Apple, even synthesized CGFontRefs must be released. Also,
+	   we do need to release our container ref, if any. */
+	if (mContainerRef)
+		::ATSFontDeactivate(mContainerRef, NULL,
+			kATSOptionFlagsDefault);
     }
+
+    // 10.4Fx
+    ATSFontRef GetATSFontRef();
 
     virtual CGFontRef GetFontRef();
 
@@ -62,6 +77,13 @@ protected:
     static void DestroyBlobFunc(void* aUserData);
 
     CGFontRef mFontRef; // owning reference to the CGFont, released on destruction
+
+    // 10.4Fx class variables
+    ATSFontRef mATSFontRef; // 10.4Fx (owning reference to our ATSFont)
+    ATSFontContainerRef mContainerRef; // 10.4Fx (for MakePlatformFont)
+    bool mATSFontRefInitialized; // 10.4Fx. mUserFontData is in gfxFont.h.
+    AutoFallibleTArray<uint8_t,1024> mFontTableDir; // 10.4Fx
+    ByteCount mFontTableDirSize; // 10.4Fx
 
     bool mFontRefInitialized;
     bool mRequiresAAT;
@@ -101,11 +123,21 @@ private:
     // special case font faces treated as font families (set via prefs)
     void InitSingleFaceList();
 
+#if(0)
     static void RegisteredFontsChangedNotificationCallback(CFNotificationCenterRef center,
                                                            void *observer,
                                                            CFStringRef name,
                                                            const void *object,
                                                            CFDictionaryRef userInfo);
+#else
+    // eliminate faces which have the same ATS font reference
+    // backout bug 663688
+    void EliminateDuplicateFaces(const nsAString& aFamilyName);
+
+	// backout bug 869762
+	static void ATSNotification(ATSFontNotificationInfoRef aInfo, void* aUserArg);
+	uint32_t mATSGeneration;
+#endif
 
     // search fonts system-wide for a given character, null otherwise
     virtual gfxFontEntry* GlobalFontFallback(const uint32_t aCh,
@@ -123,7 +155,11 @@ private:
     };
 
     // default font for use with system-wide font fallback
+#if(0)
     CTFontRef mDefaultFont;
+#else
+    ATSFontRef mDefaultFont;
+#endif
 };
 
 #endif /* gfxMacPlatformFontList_H_ */

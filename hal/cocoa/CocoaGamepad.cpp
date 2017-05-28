@@ -8,9 +8,29 @@
 
 #include "mozilla/dom/GamepadService.h"
 #include <CoreFoundation/CoreFoundation.h>
-#include <IOKit/hid/IOHIDBase.h>
+#include <IOKit/hid/IOHIDLib.h>
 #include <IOKit/hid/IOHIDKeys.h>
-#include <IOKit/hid/IOHIDManager.h>
+
+/* Shims for 10.4 support -- should still work building on 10.5 */
+#include "HID_Utilities.h"
+#define IOHIDDeviceRef pRecDevice
+#define IOHIDElementRef pRecElement
+#define IOHIDDevice_GetLocationID(x) (x->locID)
+#define IOHIDElementGetType(x) ((IOHIDElementType) x->type)
+#define IOHIDElementGetCookie(x) (x->cookie)
+#define IOHIDElementGetLogicalMin(x) (x->min)
+#define IOHIDElementGetLogicalMax(x) (x->max)
+#define IOHIDElementGetUsagePage(x) (x->usagePage)
+#define IOHIDElementGetUsage(x) (x->usage)
+#define IOHIDDevice_GetManufacturer(x) (x->manufacturer)
+#define IOHIDDevice_GetProduct(x) (x->product)
+#define IOHIDDevice_GetUsagePage(x) (x->usagePage)
+#define IOHIDDevice_GetUsage(x) (x->usage)
+#define IOHIDDevice_GetVendorID(x) (x->vendorID)
+#define IOHIDDevice_GetProductID(x) (x->productID)
+#define IOHIDDevice_GetLocationID(x) (x->locID)
+#define IOHIDDevice_GetVersionNumber(x) (x->version)
+#define IOHIDDevice_GetSerialNumber(x) (x->serial)
 
 #include <stdio.h>
 #include <vector>
@@ -83,6 +103,7 @@ class Gamepad {
 };
 
 void Gamepad::init(IOHIDDeviceRef device) {
+#if(0)
   clear();
   mDevice = device;
 
@@ -112,8 +133,10 @@ void Gamepad::init(IOHIDDeviceRef device) {
       //TODO: handle other usage pages
     }
   }
+#endif
 }
 
+#if(0)
 class DarwinGamepadService {
  private:
   IOHIDManagerRef mManager;
@@ -345,11 +368,14 @@ void DarwinGamepadService::Shutdown()
     mManager = nullptr;
   }
 }
+#endif
 
 } // namespace
 
 namespace mozilla {
 namespace hal_impl {
+
+#if(0)
 
 DarwinGamepadService* gService = nullptr;
 
@@ -371,6 +397,19 @@ void StopMonitoringGamepadStatus()
   delete gService;
   gService = nullptr;
 }
+
+#else
+
+void StartMonitoringGamepadStatus()
+{
+#warning Gamepad support not yet supported on 10.4
+}
+
+void StopMonitoringGamepadStatus()
+{
+}
+
+#endif
 
 } // namespace hal_impl
 } // namespace mozilla

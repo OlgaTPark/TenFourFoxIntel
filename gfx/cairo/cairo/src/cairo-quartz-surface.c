@@ -175,12 +175,16 @@ static void quartz_ensure_symbols(void)
     CGContextSetAllowsFontSmoothingPtr = dlsym(RTLD_DEFAULT, "CGContextSetAllowsFontSmoothing");
     CGContextGetAlphaPtr = dlsym(RTLD_DEFAULT, "CGContextGetAlpha");
 
+#if(0)
     CTFontDrawGlyphsPtr = dlsym(RTLD_DEFAULT, "CTFontDrawGlyphs");
 
     if (Gestalt(gestaltSystemVersion, &_cairo_quartz_osx_version) != noErr) {
         // assume 10.5
         _cairo_quartz_osx_version = 0x1050;
     }
+#else
+     _cairo_quartz_osx_version = 0x1040; // so awesome
+#endif
 
     _cairo_quartz_symbol_lookup_done = TRUE;
 }
