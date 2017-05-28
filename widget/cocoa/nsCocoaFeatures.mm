@@ -4,6 +4,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #define MAC_OS_X_VERSION_MASK      0x0000FFFF
+#define MAC_OS_X_VERSION_10_4_HEX  0x00001040
+#define MAC_OS_X_VERSION_10_5_HEX  0x00001050
 #define MAC_OS_X_VERSION_10_6_HEX  0x00001060
 #define MAC_OS_X_VERSION_10_7_HEX  0x00001070
 #define MAC_OS_X_VERSION_10_8_HEX  0x00001080
@@ -36,7 +38,7 @@ static void GetSystemVersion(int &major, int &minor, int &bugfix)
     NSString* versionString = [[NSDictionary dictionaryWithContentsOfFile:
                                 @"/System/Library/CoreServices/SystemVersion.plist"] objectForKey:@"ProductVersion"];
     NSArray* versions = [versionString componentsSeparatedByString:@"."];
-    NSUInteger count = [versions count];
+    UInt32 count = [versions count];
     if (count > 0) {
         major = intAtStringIndex(versions, 0);
         if (count > 1) {
@@ -57,6 +59,7 @@ nsCocoaFeatures::InitializeVersionNumbers()
     // as this gets called before the main autorelease pool is in place.
     nsAutoreleasePool localPool;
 
+#if(0)
     int major, minor, bugfix;
     GetSystemVersion(major, minor, bugfix);
 
@@ -78,6 +81,32 @@ nsCocoaFeatures::InitializeVersionNumbers()
     } else {
         mOSXVersion = 0x1000 + (minor << 4);
     }
+#else
+    // GetSystemVersion() is unnecessary on OS X prior to 10.8, and
+    // Gestalt() is not deprecated there. We can't run on 10.7+ anyhow.
+    // Although gestaltSystemVersion is deprecated since 10.3, we use it
+    // to save a call since we can get Major and Minor in one step.
+    OSErr err = ::Gestalt(gestaltSystemVersion,
+		reinterpret_cast<SInt32*>(&mOSXVersion));
+    if (err != noErr) {
+        NS_ERROR("Couldn't determine OS X version, assuming 10.4");
+        mOSXVersion = MAC_OS_X_VERSION_10_4_HEX;
+	}
+	mOSXVersion &= MAC_OS_X_VERSION_MASK;
+	if ((mOSXVersion & 0x0000ff00) != 0x00001000) {
+		NS_ERROR("Major version is not 10???");
+	}
+	mOSXVersionMajor = 10;
+	mOSXVersionMinor = (mOSXVersion & 0x000000f0) >> 4;
+	// We need this to distinguish 10.4.10 and 10.4.11 from 10.4.9, even though we only
+	// support 10.4.11.
+	err = ::Gestalt(gestaltSystemVersionBugFix,
+		reinterpret_cast<SInt32*>(&mOSXVersionBugFix));
+	if (err != noErr) {
+		NS_ERROR("Couldn't determine OS X bug fix, assuming default");
+		mOSXVersionBugFix = (mOSXVersionMinor == 5) ? 8 : 11;
+	}
+#endif
 
     NS_OBJC_END_TRY_ABORT_BLOCK;
 }
@@ -123,6 +152,19 @@ nsCocoaFeatures::SupportCoreAnimationPlugins()
 {
     // Disallow Core Animation on 10.5 because of crashes.
     // See Bug 711564.
+    return (OSXVersion() >= MAC_OS_X_VERSION_10_6_HEX);
+}
+
+// For 10.4Fx
+/* static */ bool
+nsCocoaFeatures::OnLeopardOrLater()
+{
+    return (OSXVersion() >= MAC_OS_X_VERSION_10_5_HEX);
+}
+
+/* static */ bool
+nsCocoaFeatures::OnSnowLeopardOrLater()
+{
     return (OSXVersion() >= MAC_OS_X_VERSION_10_6_HEX);
 }
 

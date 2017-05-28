@@ -78,7 +78,10 @@ typedef struct _nsCocoaWindowList {
   // descendants to use.
   float mDPI;
 
+// 10.4 doesn't have NSTrackingArea.
+#if(0)
   NSTrackingArea* mTrackingArea;
+#endif
 
   BOOL mBeingShown;
   BOOL mDrawTitle;
@@ -188,6 +191,14 @@ typedef struct _nsCocoaWindowList {
 - (void)sendToplevelActivateEvents;
 - (void)sendToplevelDeactivateEvents;
 @end
+
+// backout bug 678091
+struct UnifiedGradientInfo {
+  float titlebarHeight;
+  float toolbarHeight;
+  BOOL windowIsMain;
+  BOOL drawTitlebar; // NO for toolbar, YES for titlebar
+};
 
 @class ToolbarWindow;
 
@@ -326,10 +337,20 @@ public:
     void SetMenuBar(nsMenuBarX* aMenuBar);
     nsMenuBarX *GetMenuBar();
 
+#if(0)
+// Introduced by bug 807893.
     NS_IMETHOD NotifyIME(const IMENotification& aIMENotification) MOZ_OVERRIDE;
     NS_IMETHOD_(void) SetInputContext(
                         const InputContext& aContext,
                         const InputContextAction& aAction) MOZ_OVERRIDE;
+#else
+    NS_IMETHOD_(void) SetInputContext(const InputContext& aContext,
+                                      const InputContextAction& aAction)
+    {
+      mInputContext = aContext;
+    }
+#endif
+
     NS_IMETHOD_(InputContext) GetInputContext()
     {
       NSView* view = mWindow ? [mWindow contentView] : nil;
@@ -349,6 +370,8 @@ public:
                         const mozilla::WidgetKeyboardEvent& aEvent,
                         DoCommandCallback aCallback,
                         void* aCallbackData) MOZ_OVERRIDE;
+
+	static void UnifiedShading(void* aInfo, const CGFloat* aIn, CGFloat* aOut);
 
     void SetPopupWindowLevel();
 

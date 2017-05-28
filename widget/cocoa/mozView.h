@@ -52,6 +52,12 @@ class TextInputHandler;
   // Checks whether the view is first responder or not
 - (BOOL)isFirstResponder;
 
+#ifndef MAC_OS_X_VERSION_10_5
+- (void)fireKeyEventForFlagsChanged:(NSEvent*)theEvent keyDown:(BOOL)isKeyDown;
+
+- (void)initTSMDocument;
+#endif
+
   // Call when you dispatch an event which may cause to open context menu.
 - (void)maybeInitContextMenuTracking;
 

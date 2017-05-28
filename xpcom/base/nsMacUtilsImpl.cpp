@@ -6,11 +6,13 @@
 #include "nsMacUtilsImpl.h"
 
 #include <CoreFoundation/CoreFoundation.h>
+#include <sys/sysctl.h>
 
 NS_IMPL_ISUPPORTS(nsMacUtilsImpl, nsIMacUtils)
 
 nsresult nsMacUtilsImpl::GetArchString(nsAString& archString)
 {
+#if(0)
   if (!mBinaryArchs.IsEmpty()) {
     archString.Assign(mBinaryArchs);
     return NS_OK;
@@ -83,6 +85,9 @@ nsresult nsMacUtilsImpl::GetArchString(nsAString& archString)
   }
 
   archString.Assign(mBinaryArchs);
+#else
+  archString.Assign(NS_LITERAL_STRING("ppc"));
+#endif
 
   return (archString.IsEmpty() ? NS_ERROR_FAILURE : NS_OK);
 }

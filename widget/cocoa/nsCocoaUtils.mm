@@ -271,6 +271,58 @@ void nsCocoaUtils::CleanUpAfterNativeAppModalDialog()
   NS_OBJC_END_TRY_ABORT_BLOCK;
 }
 
+unsigned short nsCocoaUtils::GetCocoaEventKeyCode(NSEvent *theEvent)
+{
+  unsigned short keyCode = [theEvent keyCode];
+  if (nsCocoaFeatures::OnLeopardOrLater())
+    return keyCode;
+  NSEventType type = [theEvent type];
+  // GetCocoaEventKeyCode() can get called with theEvent set to a FlagsChanged
+  // event, which triggers an NSInternalInconsistencyException when
+  // charactersIgnoringModifiers is called on it.  For some reason there's no
+  // problem calling keyCode on it (as we do above).
+  if ((type != NSKeyDown) && (type != NSKeyUp))
+    return keyCode;
+  NSString *unmodchars = [theEvent charactersIgnoringModifiers];
+  if (!keyCode && ([unmodchars length] == 1)) {
+    // An OS-X-10.4.X-specific Apple bug causes the 'theEvent' parameter of
+    // all calls to performKeyEquivalent: (whether on NSMenu, NSWindow or
+    // NSView objects) to have most of its fields zeroed on a ctrl-ESC event.
+    // These include its keyCode and modifierFlags fields, but fortunately
+    // not its characters and charactersIgnoringModifiers fields.  So if
+    // charactersIgnoringModifiers has length == 1 and corresponds to the ESC
+    // character (0x1b), we correct keyCode to 0x35 (kEscapeKeyCode).
+    if ([unmodchars characterAtIndex:0] == 0x1b)
+      keyCode = 0x35;
+  }
+  return keyCode;
+}
+
+NSUInteger nsCocoaUtils::GetCocoaEventModifierFlags(NSEvent *theEvent)
+{
+  NSUInteger modifierFlags = [theEvent modifierFlags];
+  if (nsCocoaFeatures::OnLeopardOrLater())
+    return modifierFlags;
+  NSEventType type = [theEvent type];
+  if ((type != NSKeyDown) && (type != NSKeyUp))
+    return modifierFlags;
+  NSString *unmodchars = [theEvent charactersIgnoringModifiers];
+  if (!modifierFlags && ([unmodchars length] == 1)) {
+    // An OS-X-10.4.X-specific Apple bug causes the 'theEvent' parameter of
+    // all calls to performKeyEquivalent: (whether on NSMenu, NSWindow or
+    // NSView objects) to have most of its fields zeroed on a ctrl-ESC event.
+    // These include its keyCode and modifierFlags fields, but fortunately
+    // not its characters and charactersIgnoringModifiers fields.  So if
+    // charactersIgnoringModifiers has length == 1 and corresponds to the ESC
+    // character (0x1b), we correct modifierFlags to NSControlKeyMask.  (ESC
+    // key events don't get messed up (anywhere they're sent) on opt-ESC,
+    // shift-ESC or cmd-ESC.)
+    if ([unmodchars characterAtIndex:0] == 0x1b)
+      modifierFlags = NSControlKeyMask;
+  }
+  return modifierFlags;
+}
+
 void data_ss_release_callback(void *aDataSourceSurface,
                               const void *data,
                               size_t size)
@@ -338,6 +390,7 @@ nsresult nsCocoaUtils::CreateNSImageFromCGImage(CGImageRef aInputImage, NSImage 
 {
   NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
 
+#if(0)
   // Be very careful when creating the NSImage that the backing NSImageRep is
   // exactly 1:1 with the input image. On a retina display, both [NSImage
   // lockFocus] and [NSImage initWithCGImage:size:] will create an image with a
@@ -384,6 +437,25 @@ nsresult nsCocoaUtils::CreateNSImageFromCGImage(CGImageRef aInputImage, NSImage 
   [*aResult addRepresentation:offscreenRep];
   [offscreenRep release];
   return NS_OK;
+#else
+  // The code above generates mangled icons on 10.4 and 10.5, so restore the
+  // Firefox 26 code (backout bug 888689).
+  int32_t width = ::CGImageGetWidth(aInputImage);
+  int32_t height = ::CGImageGetHeight(aInputImage);
+  NSRect imageRect = ::NSMakeRect(0.0, 0.0, width, height);
+
+  // Create a new image to receive the Quartz image data.
+  *aResult = [[NSImage alloc] initWithSize:imageRect.size];
+
+  [*aResult lockFocus];
+
+  // Get the Quartz context and draw.
+  CGContextRef imageContext = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+  ::CGContextDrawImage(imageContext, *(CGRect*)&imageRect, aInputImage);
+
+  [*aResult unlockFocus];
+  return NS_OK;
+#endif
 
   NS_OBJC_END_TRY_ABORT_BLOCK_NSRESULT;
 }
@@ -505,7 +577,11 @@ nsCocoaUtils::MakeNewCocoaEventWithType(NSEventType aEventType, NSEvent *aEvent)
   NSEvent* newEvent =
     [NSEvent     keyEventWithType:aEventType
                          location:[aEvent locationInWindow] 
+#ifdef NS_LEOPARD_AND_LATER
                     modifierFlags:[aEvent modifierFlags]
+#else
+                    modifierFlags: nsCocoaUtils::GetCocoaEventModifierFlags(aEvent)
+#endif
                         timestamp:[aEvent timestamp]
                      windowNumber:[aEvent windowNumber]
                           context:[aEvent context]
@@ -543,7 +619,12 @@ nsCocoaUtils::InitInputEvent(WidgetInputEvent& aInputEvent,
   NS_OBJC_BEGIN_TRY_ABORT_BLOCK;
 
   NSUInteger modifiers =
-    aNativeEvent ? [aNativeEvent modifierFlags] : [NSEvent modifierFlags];
+#if NS_LEOPARD_AND_LATER
+    aNativeEvent ? [aNativeEvent modifierFlags] : GetCurrentModifiers();
+#else
+    aNativeEvent ? nsCocoaUtils::GetCocoaEventModifierFlags(aNativeEvent)
+    : GetCurrentModifiers();
+#endif
   InitInputEvent(aInputEvent, modifiers);
 
   aInputEvent.time = PR_IntervalNow();
@@ -593,6 +674,46 @@ nsCocoaUtils::InitInputEvent(WidgetInputEvent& aInputEvent,
   // other keys are pressed. We cannot check whether 'fn' key is pressed or
   // not by the flag.
 
+}
+
+/* Backout from bug 801601. 10.4 doesn't use this. */
+// static
+NSUInteger
+nsCocoaUtils::GetCurrentModifiers()
+{
+  // NOTE: [[NSApp currentEvent] modifiers] isn't useful because it sometime 0
+  //       and we cannot check if it's actual state.
+  if (nsCocoaFeatures::OnSnowLeopardOrLater()) {
+    // XXX [NSEvent modifierFlags] returns "current" modifier state, so,
+    //     it's not event-queue-synchronized.  GetCurrentEventKeyModifiers()
+    //     might be better, but it's Carbon API, we shouldn't use it as far as
+    //     possible.
+    return [NSEvent modifierFlags];
+  }
+
+  // If [NSEvent modifierFlags] isn't available, use carbon API.
+  // GetCurrentEventKeyModifiers() might be better?
+  // It's event-queue-synchronized.
+  UInt32 carbonModifiers = ::GetCurrentKeyModifiers();
+  NSUInteger cocoaModifiers = 0;
+
+  if (carbonModifiers & alphaLock) {
+    cocoaModifiers |= NSAlphaShiftKeyMask;
+  }
+  if (carbonModifiers & (controlKey | rightControlKey)) {
+    cocoaModifiers |= NSControlKeyMask;
+  }
+  if (carbonModifiers & (optionKey | rightOptionKey)) {
+    cocoaModifiers |= NSAlternateKeyMask;
+  }
+  if (carbonModifiers & (shiftKey | rightShiftKey)) {
+    cocoaModifiers |= NSShiftKeyMask;
+  }
+  if (carbonModifiers & cmdKey) {
+    cocoaModifiers |= NSCommandKeyMask;
+  }
+
+  return cocoaModifiers;
 }
 
 // static

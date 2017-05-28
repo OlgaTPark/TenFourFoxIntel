@@ -103,10 +103,12 @@ typedef NSInteger NSUserNotificationActivationType;
 - (void)userNotificationCenter:(id<FakeNSUserNotificationCenter>)center
   didRemoveDeliveredNotifications:(NSArray *)notifications
 {
+#if(0)
   for (id<FakeNSUserNotification> notification in notifications) {
     NSString *name = [[notification userInfo] valueForKey:@"name"];
     mOSXNC->CloseAlertCocoaString(name);
   }
+#endif
 }
 
 @end
@@ -284,6 +286,7 @@ OSXNotificationCenter::CloseAlertCocoaString(NSString *aAlertName)
   }
 
   NSArray *notifications = [GetNotificationCenter() deliveredNotifications];
+#if(0)
   for (id<FakeNSUserNotification> notification in notifications) {
     NSString *name = [[notification userInfo] valueForKey:@"name"];
     if ([name isEqualToString:aAlertName]) {
@@ -292,6 +295,7 @@ OSXNotificationCenter::CloseAlertCocoaString(NSString *aAlertName)
       break;
     }
   }
+#endif
 
   for (unsigned int i = 0; i < mActiveAlerts.Length(); i++) {
     OSXNotificationInfo *osxni = mActiveAlerts[i];

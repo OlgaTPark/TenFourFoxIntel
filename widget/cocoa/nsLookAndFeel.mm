@@ -22,6 +22,7 @@ enum {
   mozNSScrollerStyleLegacy       = 0,
   mozNSScrollerStyleOverlay      = 1
 };
+typedef int32_t NSInteger; // sigh
 typedef NSInteger mozNSScrollerStyle;
 
 @interface NSScroller(AvailableSinceLion)
@@ -234,7 +235,7 @@ nsLookAndFeel::NativeGetColor(ColorID aID, nscolor &aColor)
       break;
     case eColorID__moz_mac_chrome_active:
     case eColorID__moz_mac_chrome_inactive: {
-      int grey = NativeGreyColorAsInt(toolbarFillGrey, (aID == eColorID__moz_mac_chrome_active));
+      int grey = NativeGreyColorAsInt(headerEndGrey, (aID == eColorID__moz_mac_chrome_active));
       aColor = NS_RGB(grey, grey, grey);
     }
       break;
@@ -245,7 +246,8 @@ nsLookAndFeel::NativeGetColor(ColorID aID, nscolor &aColor)
       aColor = NS_RGB(0xA3,0xA3,0xA3);
       break;          
     case eColorID__moz_mac_menutextdisable:
-      aColor = NS_RGB(0x88,0x88,0x88);
+      aColor = nsCocoaFeatures::OnSnowLeopardOrLater() ?
+                 NS_RGB(0x88,0x88,0x88) : NS_RGB(0x98,0x98,0x98);
       break;      
     case eColorID__moz_mac_menutextselect:
       aColor = GetColorFromNSColor([NSColor selectedMenuItemTextColor]);

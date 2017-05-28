@@ -22,7 +22,7 @@
 #elif defined(__ARMEL__)
 #define V8_HOST_ARCH_ARM 1
 #else
-#warning Please add support for your architecture in chromium_types.h
+// STFU. Bloody hell.
 #endif
 
 // STORE_SEQUENCER: Because signals can interrupt our profile modification
@@ -66,7 +66,11 @@ LinuxKernelMemoryBarrierFunc pLinuxKernelMemoryBarrier __attribute__((weak)) =
 #  error "Memory clobber not supported for your compiler."
 # endif
 #else
-# error "Memory clobber not supported for your platform."
+# if __GNUC__
+#  define STORE_SEQUENCER() asm volatile("" ::: "memory");
+# else
+#  error "Memory clobber not supported for your platform."
+# endif
 #endif
 
 // We can't include <algorithm> because it causes issues on OS X, so we use

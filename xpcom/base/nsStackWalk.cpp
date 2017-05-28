@@ -101,7 +101,12 @@ my_malloc_logger(uint32_t type, uintptr_t arg1, uintptr_t arg2, uintptr_t arg3,
 
   // On Leopard dladdr returns the wrong value for "new_sem_from_pool". The
   // stack shows up as having two pthread_cond_wait$UNIX2003 frames.
+#if(0)
+// This symbol only exists on Lion. Given we can't ever run on Lion ...
   const char *name = "new_sem_from_pool";
+#else
+  const char *name = "pthread_cond_wait$UNIX2003"; // 10.4 XXX.
+#endif
   NS_StackWalk(stack_callback, /* skipFrames */ 0, /* maxFrames */ 0,
                const_cast<char*>(name), 0, nullptr);
 }
@@ -146,7 +151,10 @@ StackWalkInitCriticalAddress()
   // On Lion, malloc is no longer called from pthread_cond_*wait*. This prevents
   // us from finding the address, but that is fine, since with no call to malloc
   // there is no critical address.
+  // Tiger, too.
+#if(0)
   MOZ_ASSERT(OnLionOrLater() || gCriticalAddress.mAddr != nullptr);
+#endif
   MOZ_ASSERT(r == ETIMEDOUT);
   r = pthread_mutex_unlock(&mutex);
   MOZ_ASSERT(r == 0);
@@ -1171,7 +1179,9 @@ FramePointerStackWalk(NS_WalkStackCallback aCallback, uint32_t aSkipFrames,
     bp += 2;
 #endif
     if (IsCriticalAddress(pc)) {
+/*
       printf("Aborting stack trace, PC is critical\n");
+*/
       return NS_ERROR_UNEXPECTED;
     }
     if (--skip < 0) {

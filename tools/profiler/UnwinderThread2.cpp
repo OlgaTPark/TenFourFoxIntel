@@ -63,6 +63,8 @@
 // lot of time looping on corrupted stacks.
 #define MAX_NATIVE_FRAMES 256
 
+// Probably already defined
+#define SPS_OS_darwin
 
 // The 'else' of this covers the entire rest of the file
 #if defined(SPS_OS_windows) || defined(SPS_OS_darwin)

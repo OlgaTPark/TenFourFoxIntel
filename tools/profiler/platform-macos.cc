@@ -131,7 +131,9 @@ class PlatformData : public Malloced {
  public:
   PlatformData() : profiled_thread_(mach_thread_self())
   {
+#if(0)
     profiled_pthread_ = pthread_from_mach_thread_np(profiled_thread_);
+#endif
   }
 
   ~PlatformData() {
@@ -254,9 +256,12 @@ class SamplerThread : public Thread {
 #define REGISTER_FIELD(name) e ## name
 #endif  // __DARWIN_UNIX03
 #else
+/* up yours, Mozilla
 #error Unsupported Mac OS X host architecture.
+*/
 #endif  // V8_HOST_ARCH
 
+#if(0)
     if (thread_get_state(profiled_thread,
                          flavor,
                          reinterpret_cast<natural_t*>(&state),
@@ -268,6 +273,7 @@ class SamplerThread : public Thread {
       sample->threadProfile = thread_profile;
       sampler->Tick(sample);
     }
+#endif
     thread_resume(profiled_thread);
   }
 
@@ -321,7 +327,11 @@ Sampler::GetProfiledThread(PlatformData* aData)
 #include <sys/syscall.h>
 pid_t gettid()
 {
+#if(0)
   return (pid_t) syscall(SYS_thread_selfid);
+#else
+  return (pid_t)0;
+#endif
 }
 
 /* static */ Thread::tid_t

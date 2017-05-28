@@ -6,9 +6,14 @@
 
 if CONFIG['OS_ARCH'] == 'Darwin':
     SOURCES += [
+        'xptcinvoke_asm_ppc_rhapsody.s',
         'xptcinvoke_darwin.cpp',
         'xptcstubs_darwin.cpp',
     ]
+    GENERATED_SOURCES += [
+        'xptcstubs_asm_ppc_darwin.S',
+    ]
+    
     if CONFIG['OS_TEST'] == 'powerpc':
         SOURCES += [
             'xptcinvoke_asm_ppc_rhapsody.s',
