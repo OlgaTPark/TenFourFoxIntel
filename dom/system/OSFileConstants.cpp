@@ -15,9 +15,12 @@
 #include "sys/stat.h"
 #endif // defined(XP_UNIX)
 
+// 10.4 doesn't have this.
+#if(0)
 #if defined(XP_MACOSX)
 #include "copyfile.h"
 #endif // defined(XP_MACOSX)
+#endif
 
 #if defined(XP_WIN)
 #include <windows.h>
@@ -461,7 +464,11 @@ static dom::ConstantSpec gLibcProperties[] =
 #if defined(dirfd)
   { "OSFILE_SIZEOF_DIR", INT_TO_JSVAL(sizeof (DIR)) },
 
+/*
   { "OSFILE_OFFSETOF_DIR_DD_FD", INT_TO_JSVAL(offsetof (DIR, __dd_fd)) },
+  On 10.4 it's actually dd_fd, not __dd_fd (see /usr/include/dirent.h).
+*/
+  { "OSFILE_OFFSETOF_DIR_DD_FD", INT_TO_JSVAL(offsetof (DIR, dd_fd)) },
 #endif
 
   // Defining |stat|

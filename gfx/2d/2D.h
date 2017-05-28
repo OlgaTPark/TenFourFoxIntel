@@ -876,6 +876,7 @@ class GFX2D_API Factory
 {
 public:
   static bool HasSSE2();
+  static bool HasVMX();
 
   static TemporaryRef<DrawTarget> CreateDrawTargetForCairoSurface(cairo_surface_t* aSurface, const IntSize& aSize);
 

@@ -6,6 +6,7 @@
 
 #ifndef MacIOSurface_h__
 #define MacIOSurface_h__
+#if(0)
 #ifdef XP_MACOSX
 
 #import <OpenGL/OpenGL.h>
@@ -66,5 +67,6 @@ private:
   double mContentsScaleFactor;
 };
 
+#endif
 #endif
 #endif

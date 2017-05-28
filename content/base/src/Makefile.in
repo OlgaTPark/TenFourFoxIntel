@@ -79,3 +79,10 @@ ifdef SOLARIS_SUNPRO_CXX
 nsTextFragmentSSE2.$(OBJ_SUFFIX): CXXFLAGS+=-xarch=sse2 -xO4
 endif
 endif
+
+ifdef TENFOURFOX_VMX
+ifdef GNU_CC
+nsTextFragmentVMX.$(OBJ_SUFFIX): CXXFLAGS+=-maltivec
+endif
+endif
+

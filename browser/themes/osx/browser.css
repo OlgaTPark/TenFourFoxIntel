@@ -73,8 +73,8 @@ toolbar[mode="full"] toolbarseparator {
 
 #PersonalToolbar {
   -moz-appearance: none;
-  margin-top: -2px; /* overlay the bottom border of the toolbar above us */
-  padding-top: 1px !important;
+  margin-top: -1px; /* overlay the bottom border of the toolbar above us */
+  padding-top: 0px !important;
   background-color: -moz-mac-chrome-active;
   border-bottom: 1px solid rgba(0, 0, 0, 0.57);
 }
@@ -374,22 +374,21 @@ toolbarbutton.bookmark-item > menupopup {
 .toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker,
 #restore-button {
   -moz-box-orient: vertical;
-  -moz-appearance: toolbarbutton;
+  padding: 0 3px;
   height: 22px;
-  padding: 0;
-  border: 0;
+  border: 1px solid @toolbarbuttonBorderColor@;
+  border-radius: @toolbarbuttonCornerRadius@;
+  box-shadow: 0 1px rgba(255, 255, 255, 0.2);
+  background: @toolbarbuttonBackground@;
+  background-origin: border-box;
 }
 
 .toolbarbutton-1:not([type="menu-button"]):-moz-lwtheme,
 .toolbarbutton-1 > .toolbarbutton-menubutton-button:-moz-lwtheme,
 .toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker:-moz-lwtheme,
 #restore-button:-moz-lwtheme {
-  -moz-appearance: none;
-  padding: 0 3px;
-  border: 1px solid rgba(0, 0, 0, 0.4);
-  border-radius: @toolbarbuttonCornerRadius@;
-  background: linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.2)) repeat-x;
-  background-origin: border-box;
+  border-color: rgba(0, 0, 0, 0.4);
+  background-image: linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.2));
   box-shadow: inset 0 1px rgba(255,255,255,0.3), 0 1px rgba(255,255,255,0.2);
 }
 
@@ -432,7 +431,6 @@ toolbar:not([mode="icons"]) .toolbarbutton-1:not([type="menu-button"]),
 toolbar:not([mode="icons"]) .toolbarbutton-1 > .toolbarbutton-menubutton-button,
 toolbar:not([mode="icons"]) .toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker,
 toolbar:not([mode="icons"]) #restore-button {
-  -moz-appearance: none;
   padding: 0;
   height: auto;
   border: none;
@@ -540,6 +538,16 @@ toolbar:not([mode="icons"]) .toolbarbutton-1:not([open="true"]) > .toolbarbutton
   margin: 2px 0 0;
 }
 
+toolbar[mode="icons"] .toolbarbutton-1:not([type="menu-button"]):not([disabled="true"]):active:hover:not(:-moz-lwtheme),
+toolbar[mode="icons"] .toolbarbutton-1:not([type="menu-button"])[open="true"]:not(:-moz-lwtheme),
+toolbar[mode="icons"] .toolbarbutton-1:not([disabled="true"]) > .toolbarbutton-menubutton-button:active:hover:not(:-moz-lwtheme),
+toolbar[mode="icons"] .toolbarbutton-1[open="true"] > .toolbarbutton-menubutton-dropmarker:not(:-moz-lwtheme),
+toolbar[mode="icons"] #restore-button:not([disabled="true"]):active:hover:not(:-moz-lwtheme) {
+  background: @toolbarbuttonPressedBackgroundColor@;
+  text-shadow: @loweredShadow@;
+  box-shadow: @toolbarbuttonPressedInnerShadow@, @loweredShadow@;
+}
+
 toolbar[mode="icons"] .toolbarbutton-1:not([type="menu-button"]):not([disabled="true"]):active:hover:-moz-lwtheme,
 toolbar[mode="icons"] .toolbarbutton-1:not([type="menu-button"])[open="true"]:-moz-lwtheme,
 toolbar[mode="icons"] .toolbarbutton-1:not([disabled="true"]) > .toolbarbutton-menubutton-button:active:hover:-moz-lwtheme,
@@ -550,14 +558,37 @@ toolbar[mode="icons"] #restore-button:not([disabled="true"]):active:hover:-moz-l
   box-shadow: inset 0 2px 5px rgba(0,0,0,0.6), 0 1px rgba(255,255,255,0.2);
 }
 
+toolbar[mode="icons"] .toolbarbutton-1:not([type="menu-button"]):not(#fullscreen-button)[checked="true"]:not(:-moz-lwtheme) {
+  background: #606060;
+  box-shadow: inset #2A2A2A 0 3px 3.5px, @loweredShadow@;
+}
+
 toolbar[mode="icons"] .toolbarbutton-1:not([type="menu-button"]):not(#fullscreen-button)[checked="true"]:-moz-lwtheme {
   background-color: rgba(0,0,0,0.4);
   box-shadow: inset 0 2px 5px rgba(0,0,0,0.7), 0 1px rgba(255,255,255,0.2);
 }
 
+toolbar[mode="icons"] .toolbarbutton-1:not([type="menu-button"]):not(#fullscreen-button)[checked="true"]:not([disabled="true"]):active:hover:not(:-moz-lwtheme) {
+  background: #4E4E4E;
+  box-shadow: inset #1c1c1c 0 3px 3.5px;
+}
+
 toolbar[mode="icons"] .toolbarbutton-1:not([type="menu-button"]):not(#fullscreen-button)[checked="true"]:not([disabled="true"]):active:hover:-moz-lwtheme {
   background-color: rgba(0, 0, 0, 0.6);
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8), 0 1px rgba(255, 255, 255, 0.2);
+}
+
+toolbar[mode="icons"] .toolbarbutton-1:not([type="menu-button"]):-moz-window-inactive:not(:-moz-lwtheme),
+toolbar[mode="icons"] .toolbarbutton-1 > .toolbarbutton-menubutton-button:-moz-window-inactive:not(:-moz-lwtheme),
+toolbar[mode="icons"] .toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker:-moz-window-inactive:not(:-moz-lwtheme),
+toolbar[mode="icons"] #restore-button:-moz-window-inactive:not(:-moz-lwtheme) {
+  border-color: @toolbarbuttonInactiveBorderColor@;
+  background-image: @toolbarbuttonInactiveBackgroundImage@;
+}
+
+toolbar[mode="icons"] .toolbarbutton-1:not([type="menu-button"]):not(#fullscreen-button)[checked="true"]:-moz-window-inactive {
+  background: #8E8E8E;
+  box-shadow: inset rgba(0, 0, 0, 0.5) 0 3px 3.5px, @loweredShadow@;
 }
 
 toolbar[mode="icons"] .toolbarbutton-1 > menupopup {
@@ -576,8 +607,7 @@ toolbar[mode="icons"] .toolbarbutton-1 > menupopup {
 }
 
 #back-button,
-#forward-button:-moz-locale-dir(rtl),
-toolbar[mode="icons"] #back-button:-moz-locale-dir(rtl):-moz-lwtheme {
+toolbar:not([mode="icons"]) #forward-button:-moz-locale-dir(rtl) {
   -moz-image-region: rect(0, 40px, 20px, 20px);
 }
 
@@ -590,9 +620,7 @@ toolbar[mode="icons"] #back-button:-moz-locale-dir(rtl):-moz-lwtheme {
 }
 
 #forward-button,
-#back-button:-moz-locale-dir(rtl),
-#navigator-toolbox[iconsize="large"][mode="icons"] > #nav-bar #forward-button:-moz-locale-dir(rtl),
-toolbar[mode="icons"] #forward-button:-moz-locale-dir(rtl):-moz-lwtheme {
+toolbar:not([mode="icons"]) #back-button:-moz-locale-dir(rtl) {
   -moz-image-region: rect(0, 60px, 20px, 40px);
 }
 
@@ -605,16 +633,8 @@ toolbar[mode="icons"] #forward-button:-moz-locale-dir(rtl):-moz-lwtheme {
   }
 }
 
-#navigator-toolbox[iconsize="large"][mode="icons"] > #nav-bar #back-button:-moz-locale-dir(rtl),
-#navigator-toolbox[iconsize="large"][mode="icons"] > #nav-bar #forward-button:-moz-locale-dir(rtl),
-toolbar[mode="icons"] #back-button:-moz-locale-dir(rtl):-moz-lwtheme,
-toolbar[mode="icons"] #forward-button:-moz-locale-dir(rtl):-moz-lwtheme {
-  transform: scaleX(-1);
-}
-
 #navigator-toolbox[iconsize="large"][mode="icons"] > #nav-bar #back-button {
-  -moz-appearance: none;
-  -moz-margin-end: -7px;
+  -moz-margin-end: -5px;
   position: relative;
   z-index: 1;
   -moz-image-region: rect(0, 20px, 20px, 0);
@@ -630,14 +650,6 @@ toolbar[mode="icons"] #forward-button:-moz-locale-dir(rtl):-moz-lwtheme {
   }
 }
 
-#navigator-toolbox[iconsize="large"][mode="icons"] > #nav-bar #back-button:not(:-moz-lwtheme) {
-  height: 31px;
-  padding: 4px 5px 5px 3px;
-  margin-bottom: -1px;
-  background: url(chrome://browser/skin/keyhole-circle.png) 0 0 no-repeat;
-  border-radius: 0;
-}
-
 @media (min-resolution: 2dppx) {
   #navigator-toolbox[iconsize="large"][mode="icons"] > #nav-bar #back-button:not(:-moz-lwtheme) {
     background-image: url(chrome://browser/skin/keyhole-circle@2x.png);
@@ -645,26 +657,19 @@ toolbar[mode="icons"] #forward-button:-moz-locale-dir(rtl):-moz-lwtheme {
   }
 }
 
-#navigator-toolbox[iconsize="large"][mode="icons"] > #nav-bar #back-button:-moz-window-inactive:not(:-moz-lwtheme) {
-  background-position: -60px 0;
-}
-
-#navigator-toolbox[iconsize="large"][mode="icons"] > #nav-bar #back-button:not([disabled="true"]):active:hover:not(:-moz-lwtheme),
-#navigator-toolbox[iconsize="large"][mode="icons"] > #nav-bar #back-button[open="true"]:not(:-moz-lwtheme) {
-  background-position: -30px 0;
+toolbar[mode="icons"] #back-button:-moz-locale-dir(rtl),
+toolbar[mode="icons"] #forward-button:-moz-locale-dir(rtl) {
+  -moz-transform: scaleX(-1);
 }
 
 toolbar[mode="icons"] #forward-button {
   -moz-margin-start: 0;
 }
 
-#navigator-toolbox[iconsize="large"][mode="icons"] > #nav-bar #forward-button > .toolbarbutton-icon {
-  /* shift the icon away from the back button */
-  margin-left: 3px;
-  margin-right: -1px;
-}
-
 #navigator-toolbox[iconsize="large"][mode="icons"] > #nav-bar #forward-button {
+  /* 1px to the right */
+  padding-left: 4px;
+  padding-right: 2px;
   clip-path: url(chrome://browser/content/browser.xul#osx-keyhole-forward-clip-path);
 }
 
@@ -735,13 +740,10 @@ toolbar[mode="icons"] #forward-button {
 
 #navigator-toolbox[iconsize="small"][mode="icons"] > #nav-bar #forward-button {
   width: 27px;
-}
-
-#navigator-toolbox[iconsize="small"][mode="icons"] > #nav-bar #forward-button:-moz-lwtheme {
   padding-left: 2px;
 }
 
-toolbar[mode="icons"] #forward-button:-moz-lwtheme {
+toolbar[mode="icons"] #forward-button {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
@@ -749,9 +751,6 @@ toolbar[mode="icons"] #forward-button:-moz-lwtheme {
 #navigator-toolbox[iconsize="small"][mode="icons"] > #nav-bar #back-button {
   -moz-margin-end: 0;
   width: 26px;
-}
-
-#navigator-toolbox[iconsize="small"][mode="icons"] > #nav-bar #back-button:-moz-lwtheme {
   padding-right: 2px;
   border-right-width: 0;
   border-top-right-radius: 0;
@@ -1076,6 +1075,7 @@ toolbar[mode="icons"] #zoom-out-button {
 toolbar[mode="icons"] #zoom-in-button {
   -moz-border-start: none;
   -moz-margin-start: 0;
+  height: 16px;
 }
 
 #zoom-out-button:-moz-locale-dir(ltr),
@@ -2495,35 +2495,34 @@ toolbarbutton.chevron > .toolbarbutton-menu-dropmarker {
   background-repeat: repeat-x;
 }
 
+#TabsToolbar:not(:-moz-lwtheme) {
+  background-color: -moz-mac-chrome-active;
+}
+
+#TabsToolbar:not(:-moz-lwtheme):-moz-window-inactive {
+  background-color: -moz-mac-chrome-inactive;
+}
+
 #TabsToolbar[tabsontop="false"] {
-  margin-top: -2px;
+  margin-top: -1px;
   padding-top: 2px;
 }
 
-/* For tabs-on-top, only fill the bottom 2px with the chrome background
- * color, so that the borders in tabbar-top-bg-*.png can mix with it.
- * In the top 24px the unified toolbar (from the ::before above) will show.
- */
 #TabsToolbar[tabsontop="true"]:not(:-moz-lwtheme) {
   padding-bottom: 2px;
-  background: url(chrome://browser/skin/tabbrowser/tabbar-top-bg-active.png),
-              linear-gradient(to top, -moz-mac-chrome-active 2px, transparent 2px);
+  background-image: url(chrome://browser/skin/tabbrowser/tabbar-top-bg-active.png) ;
 }
 
 #TabsToolbar[tabsontop="true"]:not(:-moz-lwtheme):-moz-window-inactive {
-  background: url(chrome://browser/skin/tabbrowser/tabbar-top-bg-inactive.png),
-              linear-gradient(to top, -moz-mac-chrome-inactive 2px, transparent 2px);
+  background-image: url(chrome://browser/skin/tabbrowser/tabbar-top-bg-inactive.png);
 }
 
-/* In tabs-on-bottom mode, fill the whole toolbar with the chrome
- * background color.
- */
 #TabsToolbar[tabsontop="false"]:not(:-moz-lwtheme) {
-  background: url(chrome://browser/skin/tabbrowser/tabbar-bottom-bg-active.png) -moz-mac-chrome-active;
+  background-image: url(chrome://browser/skin/tabbrowser/tabbar-bottom-bg-active.png);
 }
 
 #TabsToolbar[tabsontop="false"]:not(:-moz-lwtheme):-moz-window-inactive {
-  background: url(chrome://browser/skin/tabbrowser/tabbar-bottom-bg-inactive.png) -moz-mac-chrome-inactive;
+  background-image: url(chrome://browser/skin/tabbrowser/tabbar-bottom-bg-inactive.png);
 }
 
 #tabbrowser-tabs {
@@ -2730,12 +2729,11 @@ toolbarbutton.chevron > .toolbarbutton-menu-dropmarker {
 :-moz-any(#TabsToolbar, #addon-bar) .toolbarbutton-1,
 :-moz-any(#TabsToolbar, #addon-bar) .toolbarbutton-1 > .toolbarbutton-menubutton-button,
 :-moz-any(#TabsToolbar, #addon-bar) .toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker {
-  -moz-appearance: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
   /* !important flags needed because of bug 561154: */
-  margin: 0 !important;
-  padding: 0 !important;
-  border: none !important;
-  border-radius: 0 !important;
   background: none !important;
   box-shadow: none !important;
 }

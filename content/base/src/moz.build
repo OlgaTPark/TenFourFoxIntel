@@ -153,6 +153,11 @@ CPP_SOURCES += [
     'nsXMLNameSpaceMap.cpp',
 ]
 
+if CONFIG['TENFOURFOX_VMX']:
+    CPP_SOURCES += [
+        'nsTextFragmentVMX.cpp',
+    ]
+
 EXTRA_PP_COMPONENTS += [
     'contentSecurityPolicy.js',
 ]

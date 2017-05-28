@@ -1075,6 +1075,7 @@ ContentParent::ContentParent(mozIApplication* aApp,
     nsDebugImpl::SetMultiprocessMode("Parent");
 
     NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
+    NS_NOTREACHED("*** ContentParent will unconditionally fail in 10.4 ***");
     mSubprocess = new GeckoChildProcessHost(GeckoProcessType_Content,
                                             aOSPrivileges);
 

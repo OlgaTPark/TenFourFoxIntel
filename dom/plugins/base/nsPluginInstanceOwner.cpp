@@ -273,12 +273,14 @@ nsPluginInstanceOwner::nsPluginInstanceOwner()
   mObjectFrame = nullptr;
   mContent = nullptr;
   mWidgetCreationComplete = false;
+#if(0)
 #ifdef XP_MACOSX
   memset(&mCGPluginPortCopy, 0, sizeof(NP_CGContext));
   mInCGPaintLevel = 0;
   mSentInitialTopLevelWindowEvent = false;
   mColorProfile = nullptr;
   mPluginPortChanged = false;
+#endif
 #endif
   mContentFocused = false;
   mWidgetVisible = true;
@@ -1297,6 +1299,32 @@ nsresult nsPluginInstanceOwner::EnsureCachedAttrParamArrays()
   return NS_OK;
 }
 
+#if(1) // 10.4 no duz. We uze stubz. Zome are commented out later.
+
+NPDrawingModel nsPluginInstanceOwner::GetDrawingModel() {
+  return NPDrawingModelQuickDraw; // This actually isn't a lie, really.
+}
+NPEventModel nsPluginInstanceOwner::GetEventModel() {
+  return NPEventModelCarbon;
+}
+void* nsPluginInstanceOwner::GetPluginPortCopy() { return nullptr; }
+void* nsPluginInstanceOwner::FixUpPluginWindow(int32_t i) { return nullptr; }
+bool nsPluginInstanceOwner::IsRemoteDrawingCoreAnimation() { return false; }
+nsresult
+nsPluginInstanceOwner::ContentsScaleFactorChanged(double aContentsScaleFactor)
+{ return NS_ERROR_NULL_POINTER; }
+
+void nsPluginInstanceOwner::HidePluginWindow() { ; }
+void nsPluginInstanceOwner::BeginCGPaint() { ; }
+void nsPluginInstanceOwner::EndCGPaint() { ; }
+void nsPluginInstanceOwner::DoCocoaEventDrawRect(const gfxRect& aDrawRect,
+      CGContextRef cgContext) { ; }
+void nsPluginInstanceOwner::RenderCoreAnimation(CGContextRef aCGContext,
+      int aWidth, int aHeight) { ; }
+void nsPluginInstanceOwner::Paint(const gfxRect& aDirtyRect,
+      CGContextRef cgContext) { ; }
+
+#else
 #ifdef XP_MACOSX
 
 static void InitializeNPCocoaEvent(NPCocoaEvent* event)
@@ -1549,6 +1577,7 @@ void nsPluginInstanceOwner::EndCGPaint()
   NS_ASSERTION(mInCGPaintLevel >= 0, "Mismatched call to nsPluginInstanceOwner::EndCGPaint()!");
 }
 
+#endif
 #endif
 
 // static
@@ -1992,6 +2021,7 @@ nsEventStatus nsPluginInstanceOwner::ProcessEvent(const nsGUIEvent& anEvent)
   if (!mInstance || !mObjectFrame)   // if mInstance is null, we shouldn't be here
     return nsEventStatus_eIgnore;
 
+#if(0) // 10.4 no wantz.
 #ifdef XP_MACOSX
   if (!mWidget)
     return nsEventStatus_eIgnore;
@@ -2090,6 +2120,7 @@ nsEventStatus nsPluginInstanceOwner::ProcessEvent(const nsGUIEvent& anEvent)
     rv = nsEventStatus_eConsumeNoDefault;
 
   pluginWidget->EndDrawPlugin();
+#endif
 #endif
 
 #ifdef XP_WIN
@@ -2547,10 +2578,12 @@ nsPluginInstanceOwner::Destroy()
 {
   SetFrame(nullptr);
 
+#if(0)
 #ifdef XP_MACOSX
   RemoveFromCARefreshTimer();
   if (mColorProfile)
     ::CGColorSpaceRelease(mColorProfile);
+#endif
 #endif
 
   // unregister context menu listener
@@ -2606,6 +2639,7 @@ nsPluginInstanceOwner::Destroy()
 
 // Paints are handled differently, so we just simulate an update event.
 
+#if(0)
 #ifdef XP_MACOSX
 void nsPluginInstanceOwner::Paint(const gfxRect& aDirtyRect, CGContextRef cgContext)
 {
@@ -2646,6 +2680,7 @@ void nsPluginInstanceOwner::DoCocoaEventDrawRect(const gfxRect& aDrawRect, CGCon
 
   mInstance->HandleEvent(&updateEvent, nullptr);
 }
+#endif
 #endif
 
 #ifdef XP_WIN
@@ -3157,6 +3192,7 @@ NS_IMETHODIMP nsPluginInstanceOwner::CreateWidget(void)
 }
 
 // Mac specific code to fix up the port location and clipping region
+#if(0)
 #ifdef XP_MACOSX
 
 void* nsPluginInstanceOwner::FixUpPluginWindow(int32_t inPaintState)
@@ -3353,6 +3389,7 @@ nsPluginInstanceOwner::UpdateDocumentActiveState(bool aIsActive)
 #endif
 }
 #endif // XP_MACOSX
+#endif
 
 NS_IMETHODIMP
 nsPluginInstanceOwner::CallSetWindow()

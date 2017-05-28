@@ -12,9 +12,65 @@
 
 //CG_EXTERN void CGContextSetCompositeOperation (CGContextRef, PrivateCGCompositeMode);
 
+#define CG_TIGER
+#ifdef CG_TIGER
+
+extern "C" {
+// This is for 10.4, because it doesn't properly support this in CGContext.h.
+// These private methods have existed since at least 10.3.9.
+
+enum PrivateCGCompositeMode {
+    kPrivateCGCompositeClear            = 0,
+    kPrivateCGCompositeCopy             = 1,
+    kPrivateCGCompositeSourceOver       = 2,
+    kPrivateCGCompositeSourceIn         = 3,
+    kPrivateCGCompositeSourceOut        = 4,
+    kPrivateCGCompositeSourceAtop       = 5,
+    kPrivateCGCompositeDestinationOver  = 6,
+    kPrivateCGCompositeDestinationIn    = 7,
+    kPrivateCGCompositeDestinationOut   = 8,
+    kPrivateCGCompositeDestinationAtop  = 9,
+    kPrivateCGCompositeXOR              = 10,
+    kPrivateCGCompositePlusDarker       = 11, // (max (0, (1-d) + (1-s)))
+    kPrivateCGCompositePlusLighter      = 12, // (min (1, s + d))
+
+    // Although these exist in CGContext.h in 10.4, 10.4 requires these
+    // blend modes be handled differently, so we import them in here.
+    // These must be in the same order!
+    kPrivateCGBlendModeNormal,
+    kPrivateCGBlendModesStartHere = kPrivateCGBlendModeNormal,
+    kPrivateCGBlendModeMultiply,
+    kPrivateCGBlendModeScreen,
+    kPrivateCGBlendModeOverlay,
+    kPrivateCGBlendModeDarken,
+    kPrivateCGBlendModeLighten,
+    kPrivateCGBlendModeColorDodge,
+    kPrivateCGBlendModeColorBurn,
+    kPrivateCGBlendModeSoftLight,
+    kPrivateCGBlendModeHardLight,
+    kPrivateCGBlendModeDifference,
+    kPrivateCGBlendModeExclusion,
+    kPrivateCGBlendModeHue,
+    kPrivateCGBlendModeSaturation,
+    kPrivateCGBlendModeColor,
+    kPrivateCGBlendModeLuminosity
+};
+typedef enum PrivateCGCompositeMode PrivateCGCompositeMode;
+extern "C" void CGContextSetCompositeOperation (CGContextRef, PrivateCGCompositeMode);
+extern "C" void CGContextSetCTM(CGContextRef, CGAffineTransform);
+
+}
+
+// Finally include 10.4's hidden CoreText support
+#include "../thebes/PhonyCoreText.h"
+// and our CTGradient library, through the CTGradientCPP C++ bridge object
+#include "CTGradientCPP.h"
+#else
+
 // A private API that Cairo has been using for a long time
 CG_EXTERN void CGContextSetCTM(CGContextRef, CGAffineTransform);
 
+#endif
 namespace mozilla {
 namespace gfx {
 
@@ -26,6 +82,119 @@ static CGRect RectToCGRect(Rect r)
 static CGRect IntRectToCGRect(IntRect r)
 {
   return CGRectMake(r.x, r.y, r.width, r.height);
+}
+
+#ifdef CG_TIGER
+
+// Stub SetBlendMode to SetCompositeOperation. This works on 10.4 and 10.5.
+// However, we must account for the case where we get a documented (supported)
+// blend mode.
+static void inline this_CGContextSetBlendMode(CGContextRef cg, PrivateCGCompositeMode pcm) {
+  if (pcm < kPrivateCGBlendModesStartHere)
+	// This is a private composite operator.
+  	CGContextSetCompositeOperation(cg, pcm);
+  else
+	// This is a supported blend operator.
+	CGContextSetBlendMode(cg,
+		(CGBlendMode)(pcm - kPrivateCGBlendModesStartHere));
+}
+
+PrivateCGCompositeMode ToBlendMode(CompositionOp op)
+{
+  PrivateCGCompositeMode mode = kPrivateCGCompositeSourceOver;
+  switch (op) {
+    case OP_OVER:
+      mode = kPrivateCGCompositeSourceOver;
+      break;
+    case OP_ADD:
+      mode = kPrivateCGCompositePlusLighter;
+      break;
+    case OP_ATOP:
+      mode = kPrivateCGCompositeSourceAtop;
+      break;
+    case OP_OUT:
+      mode = kPrivateCGCompositeSourceOut;
+      break;
+    case OP_IN:
+      mode = kPrivateCGCompositeSourceIn;
+      break;
+    case OP_SOURCE:
+      mode = kPrivateCGCompositeCopy;
+      break;
+    case OP_DEST_IN:
+      mode = kPrivateCGCompositeDestinationIn;
+      break;
+    case OP_DEST_OUT:
+      mode = kPrivateCGCompositeDestinationOut;
+      break;
+    case OP_DEST_OVER:
+      mode = kPrivateCGCompositeDestinationOver;
+      break;
+    case OP_DEST_ATOP:
+      mode = kPrivateCGCompositeSourceAtop;
+      break;
+    case OP_XOR:
+      mode = kPrivateCGCompositeXOR;
+      break;
+    case OP_MULTIPLY:
+      mode = kPrivateCGBlendModeMultiply;
+      break;
+    case OP_SCREEN:
+      mode = kPrivateCGBlendModeScreen;
+      break;
+    case OP_OVERLAY:
+      mode = kPrivateCGBlendModeOverlay;
+      break;
+    case OP_DARKEN:
+      mode = kPrivateCGBlendModeDarken;
+      break;
+    case OP_LIGHTEN:
+      mode = kPrivateCGBlendModeLighten;
+      break;
+    case OP_COLOR_DODGE:
+      mode = kPrivateCGBlendModeColorDodge;
+      break;
+    case OP_COLOR_BURN:
+      mode = kPrivateCGBlendModeColorBurn;
+      break;
+    case OP_HARD_LIGHT:
+      mode = kPrivateCGBlendModeHardLight;
+      break;
+    case OP_SOFT_LIGHT:
+      mode = kPrivateCGBlendModeSoftLight;
+      break;
+    case OP_DIFFERENCE:
+      mode = kPrivateCGBlendModeDifference;
+      break;
+    case OP_EXCLUSION:
+      mode = kPrivateCGBlendModeExclusion;
+      break;
+    case OP_HUE:
+      mode = kPrivateCGBlendModeHue;
+      break;
+    case OP_SATURATION:
+      mode = kPrivateCGBlendModeSaturation;
+      break;
+    case OP_COLOR:
+      mode = kPrivateCGBlendModeColor;
+      break;
+    case OP_LUMINOSITY:
+      mode = kPrivateCGBlendModeLuminosity;
+      break;
+      /*
+    case OP_CLEAR:
+      mode = kPrivateCGCompositeClear;
+      break;*/
+    default:
+      mode = kPrivateCGCompositeSourceOver;
+  }
+  return mode;
+}
+
+#else
+
+static void inline this_CGContextSetBlendMode(CGContextRef cg, CGBlendMode m) {
+	CGContextSetBlendMode(cg, m);
 }
 
 CGBlendMode ToBlendMode(CompositionOp op)
@@ -119,7 +288,7 @@ CGBlendMode ToBlendMode(CompositionOp op)
   }
   return mode;
 }
-
+#endif
 
 
 DrawTargetCG::DrawTargetCG() : mCg(nullptr), mSnapshot(nullptr)
@@ -141,6 +310,8 @@ DrawTargetCG::~DrawTargetCG()
 BackendType
 DrawTargetCG::GetType() const
 {
+// 10.4 only supports BACKEND_COREGRAPHICS.
+#ifndef CG_TIGER
   // It may be worth spliting Bitmap and IOSurface DrawTarget
   // into seperate classes.
   if (GetContextType(mCg) == CG_CONTEXT_TYPE_IOSURFACE) {
@@ -148,11 +319,16 @@ DrawTargetCG::GetType() const
   } else {
     return BACKEND_COREGRAPHICS;
   }
+#else
+    return BACKEND_COREGRAPHICS;
+#endif
 }
 
 TemporaryRef<SourceSurface>
 DrawTargetCG::Snapshot()
 {
+// 10.4 does not support IOSurfaces.
+#ifndef CG_TIGER
   if (!mSnapshot) {
     if (GetContextType(mCg) == CG_CONTEXT_TYPE_IOSURFACE) {
       return new SourceSurfaceCGIOSurfaceContext(this);
@@ -160,6 +336,10 @@ DrawTargetCG::Snapshot()
       mSnapshot = new SourceSurfaceCGBitmapContext(this);
     }
   }
+#else
+  if (!mSnapshot)
+      mSnapshot = new SourceSurfaceCGBitmapContext(this);
+#endif
 
   return mSnapshot;
 }
@@ -267,7 +447,7 @@ DrawTargetCG::DrawSurface(SourceSurface *aSurface,
   CGImageRef subimage = nullptr;
   CGContextSaveGState(mCg);
 
-  CGContextSetBlendMode(mCg, ToBlendMode(aDrawOptions.mCompositionOp));
+  this_CGContextSetBlendMode(mCg, ToBlendMode(aDrawOptions.mCompositionOp));
   UnboundnessFixer fixer;
   CGContextRef cg = fixer.Check(mCg, aDrawOptions.mCompositionOp);
   CGContextSetAlpha(cg, aDrawOptions.mAlpha);
@@ -311,7 +491,7 @@ DrawTargetCG::MaskSurface(const Pattern &aSource,
   CGImageRef image;
   CGContextSaveGState(mCg);
 
-  CGContextSetBlendMode(mCg, ToBlendMode(aDrawOptions.mCompositionOp));
+  this_CGContextSetBlendMode(mCg, ToBlendMode(aDrawOptions.mCompositionOp));
   UnboundnessFixer fixer;
   CGContextRef cg = fixer.Check(mCg, aDrawOptions.mCompositionOp);
   CGContextSetAlpha(cg, aDrawOptions.mAlpha);
@@ -344,6 +524,7 @@ class GradientStopsCG : public GradientStops
   //XXX: The skia backend uses a vector and passes in aNumStops. It should do better
   GradientStopsCG(GradientStop* aStops, uint32_t aNumStops, ExtendMode aExtendMode)
   {
+#ifndef CG_TIGER
     //XXX: do the stops need to be in any particular order?
     // what should we do about the color space here? we certainly shouldn't be
     // recreating it all the time
@@ -367,7 +548,16 @@ class GradientStopsCG : public GradientStops
                                                     &offsets.front(),
                                                     aNumStops);
     CGColorSpaceRelease(colorSpace);
+#else
+    // 10.4 does not have the CGGradient convenience functions, so we use a
+    // modified version of the very convenient CTGradient by Chad Weider (hat
+    // tip) and wrap it in a bridge class to make C++ calls to it.
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    mGradient = new CTGradientCPP(colorSpace, aStops, aNumStops);
+    CGColorSpaceRelease(colorSpace);
+#endif
   }
+#ifndef CG_TIGER
   virtual ~GradientStopsCG() {
     CGGradientRelease(mGradient);
   }
@@ -375,6 +565,22 @@ class GradientStopsCG : public GradientStops
   // with BACKEND_COREGRAPHICS_ACCELERATED
   BackendType GetBackendType() const { return BACKEND_COREGRAPHICS; }
   CGGradientRef mGradient;
+#else
+  virtual ~GradientStopsCG() {
+    if(mGradient) delete mGradient;
+  }
+  void DrawTigerAxialGradient(CGContextRef cg,
+	CGPoint startPoint, CGPoint endPoint) {
+	mGradient->DrawAxial(cg, startPoint, endPoint);
+  }
+  void DrawTigerRadialGradient(CGContextRef cg, CGPoint startCenter,
+	CGFloat startRadius, CGPoint endCenter, CGFloat endRadius) {
+	mGradient->DrawRadial(cg, startCenter, startRadius,
+		endCenter, endRadius);
+  }
+  BackendType GetBackendType() const { return BACKEND_COREGRAPHICS; }
+  CTGradientCPP *mGradient; // This is the bridge class.
+#endif
 };
 
 TemporaryRef<GradientStops>
@@ -398,8 +604,12 @@ DrawGradient(CGContextRef cg, const Pattern &aPattern)
     //if (startPoint.x == endPoint.x && startPoint.y == endPoint.y)
     //  return;
 
+#ifndef CG_TIGER
     CGContextDrawLinearGradient(cg, stops->mGradient, startPoint, endPoint,
                                 kCGGradientDrawsBeforeStartLocation | kCGGradientDrawsAfterEndLocation);
+#else
+    stops->DrawTigerAxialGradient(cg, startPoint, endPoint);
+#endif
   } else if (aPattern.GetType() == PATTERN_RADIAL_GRADIENT) {
     const RadialGradientPattern& pat = static_cast<const RadialGradientPattern&>(aPattern);
     GradientStopsCG *stops = static_cast<GradientStopsCG*>(pat.mStops.get());
@@ -411,12 +621,15 @@ DrawGradient(CGContextRef cg, const Pattern &aPattern)
     CGFloat endRadius   = pat.mRadius2;
 
     //XXX: are there degenerate radial gradients that we should avoid drawing?
+#ifndef CG_TIGER
     CGContextDrawRadialGradient(cg, stops->mGradient, startCenter, startRadius, endCenter, endRadius,
                                 kCGGradientDrawsBeforeStartLocation | kCGGradientDrawsAfterEndLocation);
+#else
+    stops->DrawTigerRadialGradient(cg, startCenter, startRadius, endCenter, endRadius);
+#endif
   } else {
     assert(0);
   }
-
 }
 
 static void
@@ -558,7 +771,7 @@ DrawTargetCG::FillRect(const Rect &aRect,
   UnboundnessFixer fixer;
   CGContextRef cg = fixer.Check(mCg, aDrawOptions.mCompositionOp);
   CGContextSetAlpha(mCg, aDrawOptions.mAlpha);
-  CGContextSetBlendMode(mCg, ToBlendMode(aDrawOptions.mCompositionOp));
+  this_CGContextSetBlendMode(mCg, ToBlendMode(aDrawOptions.mCompositionOp));
 
   CGContextConcatCTM(cg, GfxMatrixToCGAffineTransform(mTransform));
 
@@ -591,7 +804,7 @@ DrawTargetCG::StrokeLine(const Point &p1, const Point &p2, const Pattern &aPatte
   UnboundnessFixer fixer;
   CGContextRef cg = fixer.Check(mCg, aDrawOptions.mCompositionOp);
   CGContextSetAlpha(mCg, aDrawOptions.mAlpha);
-  CGContextSetBlendMode(mCg, ToBlendMode(aDrawOptions.mCompositionOp));
+  this_CGContextSetBlendMode(mCg, ToBlendMode(aDrawOptions.mCompositionOp));
 
   CGContextConcatCTM(cg, GfxMatrixToCGAffineTransform(mTransform));
 
@@ -632,7 +845,7 @@ DrawTargetCG::StrokeRect(const Rect &aRect,
   UnboundnessFixer fixer;
   CGContextRef cg = fixer.Check(mCg, aDrawOptions.mCompositionOp);
   CGContextSetAlpha(mCg, aDrawOptions.mAlpha);
-  CGContextSetBlendMode(mCg, ToBlendMode(aDrawOptions.mCompositionOp));
+  this_CGContextSetBlendMode(mCg, ToBlendMode(aDrawOptions.mCompositionOp));
 
   CGContextConcatCTM(cg, GfxMatrixToCGAffineTransform(mTransform));
 
@@ -698,7 +911,7 @@ DrawTargetCG::Stroke(const Path *aPath, const Pattern &aPattern, const StrokeOpt
   UnboundnessFixer fixer;
   CGContextRef cg = fixer.Check(mCg, aDrawOptions.mCompositionOp);
   CGContextSetAlpha(mCg, aDrawOptions.mAlpha);
-  CGContextSetBlendMode(mCg, ToBlendMode(aDrawOptions.mCompositionOp));
+  this_CGContextSetBlendMode(mCg, ToBlendMode(aDrawOptions.mCompositionOp));
 
   CGContextConcatCTM(cg, GfxMatrixToCGAffineTransform(mTransform));
 
@@ -736,7 +949,7 @@ DrawTargetCG::Fill(const Path *aPath, const Pattern &aPattern, const DrawOptions
 
   CGContextSaveGState(mCg);
 
-  CGContextSetBlendMode(mCg, ToBlendMode(aDrawOptions.mCompositionOp));
+  this_CGContextSetBlendMode(mCg, ToBlendMode(aDrawOptions.mCompositionOp));
   UnboundnessFixer fixer;
   CGContextRef cg = fixer.Check(mCg, aDrawOptions.mCompositionOp);
   CGContextSetAlpha(cg, aDrawOptions.mAlpha);
@@ -787,7 +1000,7 @@ DrawTargetCG::FillGlyphs(ScaledFont *aFont, const GlyphBuffer &aBuffer, const Pa
   assert(aBuffer.mNumGlyphs);
   CGContextSaveGState(mCg);
 
-  CGContextSetBlendMode(mCg, ToBlendMode(aDrawOptions.mCompositionOp));
+  this_CGContextSetBlendMode(mCg, ToBlendMode(aDrawOptions.mCompositionOp));
   UnboundnessFixer fixer;
   CGContextRef cg = fixer.Check(mCg, aDrawOptions.mCompositionOp);
   CGContextSetAlpha(cg, aDrawOptions.mAlpha);
@@ -796,6 +1009,7 @@ DrawTargetCG::FillGlyphs(ScaledFont *aFont, const GlyphBuffer &aBuffer, const Pa
 
   ScaledFontMac* macFont = static_cast<ScaledFontMac*>(aFont);
 
+#ifndef CG_TIGER
   //XXX: we should use a stack vector here when we have a class like that
   std::vector<CGGlyph> glyphs;
   std::vector<CGPoint> positions;
@@ -847,9 +1061,50 @@ DrawTargetCG::FillGlyphs(ScaledFont *aFont, const GlyphBuffer &aBuffer, const Pa
                                      aBuffer.mNumGlyphs);
     }
   }
+#else
+  CGGlyph it[1];
+
+  // Set up the mirrored text matrix. (WTF, Apple.)
+  CGAffineTransform xform = CGAffineTransformMake(1, 0, 0, -1, 0, 0);
+  CGContextSetTextMatrix(cg, xform);
+
+  // Set the font. We don't use CoreText, so ScaledFontMac::CTFontDrawGlyphsPtr
+  // is always null.
+  CGContextSetFont(cg, macFont->mFont);
+  CGContextSetFontSize(cg, macFont->mSize);
+
+  // So we have glyphs and positions. So let's dump them where they are.
+  // XXX ShowGlyphsWithAdvances might be faster, but needs more setup, and
+  // std::vector doesn't work as we expect in 10.4's glibc++.
+  // We use two different loops so that we can speed up regular text and
+  // avoid branching inside the loop.
+  if (!isGradient(aPattern))  {
+    	CGContextSetTextDrawingMode(cg, kCGTextFill);
+    	SetFillFromPattern(cg, mColorSpace, aPattern);
+ 	for (unsigned int i = 0; i < aBuffer.mNumGlyphs; i++) {
+		it[0] = aBuffer.mGlyphs[i].mIndex;
+		CGContextShowGlyphsAtPoint(cg, 
+  			aBuffer.mGlyphs[i].mPosition.x,
+ 			aBuffer.mGlyphs[i].mPosition.y,
+			it, 1);
+	}
+  } else {
+  	for (unsigned int i = 0; i < aBuffer.mNumGlyphs; i++) {
+		CGContextSaveGState(cg); // push the "non-clip" on the stack
+    		CGContextSetTextDrawingMode(cg, kCGTextClip);
+		it[0] = aBuffer.mGlyphs[i].mIndex;
+		CGContextShowGlyphsAtPoint(cg, 
+  			aBuffer.mGlyphs[i].mPosition.x,
+  			aBuffer.mGlyphs[i].mPosition.y,
+			it, 1);
+    		DrawGradient(cg, aPattern);
+		CGContextRestoreGState(cg); // pop the clip off
+	}
+  }
+#endif
 
   fixer.Fix(mCg);
-  CGContextRestoreGState(cg);
+  CGContextRestoreGState(mCg);
 }
 
 extern "C" {
@@ -881,7 +1136,11 @@ DrawTargetCG::CopySurface(SourceSurface *aSurface,
 
     // CopySurface ignores the clip, so we need to use private API to temporarily reset it
     CGContextResetClip(mCg);
-    CGContextSetBlendMode(mCg, kCGBlendModeCopy);
+#ifndef CG_TIGER
+    this_CGContextSetBlendMode(mCg, kCGBlendModeCopy);
+#else
+    this_CGContextSetBlendMode(mCg, kPrivateCGCompositeCopy);
+#endif
 
     CGContextScaleCTM(mCg, 1, -1);
 
@@ -907,7 +1166,7 @@ DrawTargetCG::DrawSurfaceWithShadow(SourceSurface *aSurface, const Point &aDest,
   IntSize size = aSurface->GetSize();
   CGContextSaveGState(mCg);
   //XXX do we need to do the fixup here?
-  CGContextSetBlendMode(mCg, ToBlendMode(aOperator));
+  this_CGContextSetBlendMode(mCg, ToBlendMode(aOperator));
 
   CGContextScaleCTM(mCg, 1, -1);
 
@@ -962,6 +1221,8 @@ DrawTargetCG::Init(BackendType aType,
 
   mSize = aSize;
 
+// This will never be true on 10.4.
+#if(0)
   if (aType == BACKEND_COREGRAPHICS_ACCELERATED) {
     RefPtr<MacIOSurface> ioSurface = MacIOSurface::CreateIOSurface(aSize.width, aSize.height);
     mCg = ioSurface->CreateIOSurfaceContext();
@@ -969,6 +1230,7 @@ DrawTargetCG::Init(BackendType aType,
     // and we will fallback to software below
     mData = nullptr;
   }
+#endif
 
   if (!mCg || aType == BACKEND_COREGRAPHICS) {
     int bitsPerComponent = 8;
@@ -1073,12 +1335,17 @@ DrawTargetCG::CreatePathBuilder(FillRule aFillRule) const
 void*
 DrawTargetCG::GetNativeSurface(NativeSurfaceType aType)
 {
+#ifndef CG_TIGER
   if ((aType == NATIVE_SURFACE_CGCONTEXT && GetContextType(mCg) == CG_CONTEXT_TYPE_BITMAP) ||
       (aType == NATIVE_SURFACE_CGCONTEXT_ACCELERATED && GetContextType(mCg) == CG_CONTEXT_TYPE_IOSURFACE)) {
     return mCg;
   } else {
     return nullptr;
   }
+#else
+  // 10.4 does not support IOSurfaces.
+  return (aType == NATIVE_SURFACE_CGCONTEXT) ? mCg : nullptr ;
+#endif
 }
 
 void

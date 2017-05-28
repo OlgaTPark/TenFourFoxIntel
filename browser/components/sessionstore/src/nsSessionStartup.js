@@ -78,6 +78,7 @@ SessionStartup.prototype = {
       return;
     }
 
+    this._ensureInitialized(); // TenFourFox issue 209
     _SessionFile.read().then(
       this._onSessionFileRead.bind(this)
     );

@@ -337,6 +337,7 @@ var gPluginHandler = {
   },
 
   canActivatePlugin: function PH_canActivatePlugin(objLoadingContent) {
+return false; // never
     // if this isn't a known plugin, we can't activate it
     // (this also guards pluginHost.getPermissionStringForType against
     // unexpected input)
@@ -397,6 +398,7 @@ var gPluginHandler = {
 
   // Callback for user clicking on a missing (unsupported) plugin.
   installSinglePlugin: function (plugin) {
+#ifdef BOGUS_DEF_SO_THE_PREPROCESSOR_WILL_STFU
     var missingPlugins = new Map();
 
     var pluginInfo = this._getPluginInfo(plugin);
@@ -405,6 +407,13 @@ var gPluginHandler = {
     openDialog("chrome://mozapps/content/plugins/pluginInstallerWizard.xul",
                "PFSWindow", "chrome,centerscreen,resizable=yes",
                {plugins: missingPlugins, browser: gBrowser.selectedBrowser});
+#else
+    try {
+      switchToTabHavingURI(
+        "http://code.google.com/p/tenfourfox/wiki/PluginsNoLongerSupported",
+      true);
+    } catch(ex) { alert("Sorry: "+ex); }
+#endif
   },
 
   // Callback for user clicking on a disabled plugin
@@ -445,6 +454,7 @@ var gPluginHandler = {
   },
 
   showInstallNotification: function (aPlugin) {
+    return false; // turn off that damn door hanger
     let browser = gBrowser.getBrowserForDocument(aPlugin.ownerDocument
                                                         .defaultView.top.document);
     if (!browser.missingPlugins)
@@ -775,6 +785,7 @@ var gPluginHandler = {
   },
 
   _showClickToPlayNotification: function PH_showClickToPlayNotification(aBrowser, aPrimaryPlugin) {
+return; // never ever
     let notification = PopupNotifications.getNotification("click-to-play-plugins", aBrowser);
 
     let contentWindow = aBrowser.contentWindow;

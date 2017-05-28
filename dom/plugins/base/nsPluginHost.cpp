@@ -829,6 +829,8 @@ nsPluginHost::InstantiatePluginInstance(const char *aMimeType, nsIURI* aURL,
                                         nsPluginInstanceOwner** aOwner)
 {
   NS_ENSURE_ARG_POINTER(aOwner);
+  return NS_ERROR_CONTENT_BLOCKED_SHOW_ALT; // plugins dead! plugins bad!
+#if(0)
 
 #ifdef PLUGIN_LOGGING
   nsAutoCString urlSpec;
@@ -909,6 +911,7 @@ nsPluginHost::InstantiatePluginInstance(const char *aMimeType, nsIURI* aURL,
 #endif
 
   return NS_OK;
+#endif
 }
 
 nsPluginTag*
@@ -1226,6 +1229,9 @@ NS_IMPL_ISUPPORTS1(DOMPluginImpl, nsIDOMPlugin)
 nsresult
 nsPluginHost::GetPluginCount(uint32_t* aPluginCount)
 {
+  *aPluginCount = 0;
+  return NS_OK;
+#if(0)
   LoadPlugins();
 
   uint32_t count = 0;
@@ -1241,11 +1247,14 @@ nsPluginHost::GetPluginCount(uint32_t* aPluginCount)
   *aPluginCount = count;
 
   return NS_OK;
+#endif
 }
 
 nsresult
 nsPluginHost::GetPlugins(uint32_t aPluginCount, nsIDOMPlugin** aPluginArray)
 {
+  return NS_ERROR_FAILURE;
+#if(0)
   LoadPlugins();
 
   nsPluginTag* plugin = mPlugins;
@@ -1258,11 +1267,15 @@ nsPluginHost::GetPlugins(uint32_t aPluginCount, nsIDOMPlugin** aPluginArray)
   }
 
   return NS_OK;
+#endif
 }
 
 NS_IMETHODIMP
 nsPluginHost::GetPluginTags(uint32_t* aPluginCount, nsIPluginTag*** aResults)
 {
+  *aPluginCount = 0;
+  return NS_OK;
+#if(0)
   LoadPlugins();
 
   uint32_t count = 0;
@@ -1287,6 +1300,7 @@ nsPluginHost::GetPluginTags(uint32_t* aPluginCount, nsIPluginTag*** aResults)
   }
 
   return NS_OK;
+#endif
 }
 
 nsPluginTag*
@@ -1317,6 +1331,8 @@ nsPluginTag*
 nsPluginHost::FindPluginForType(const char* aMimeType,
                                 bool aCheckEnabled)
 {
+  return nullptr;
+#if(0)
   if (!aMimeType) {
     return nullptr;
   }
@@ -1340,6 +1356,7 @@ nsPluginHost::FindPluginForType(const char* aMimeType,
   }
 
   return FindPreferredPlugin(matchingPlugins);
+#endif
 }
 
 nsPluginTag*
@@ -1389,6 +1406,8 @@ nsPluginHost::FindPluginEnabledForExtension(const char* aExtension,
 static nsresult CreateNPAPIPlugin(nsPluginTag *aPluginTag,
                                   nsNPAPIPlugin **aOutNPAPIPlugin)
 {
+  return NS_ERROR_FAILURE;
+#if(0)
   // If this is an in-process plugin we'll need to load it here if we haven't already.
   if (!nsNPAPIPlugin::RunPluginOOP(aPluginTag)) {
     if (aPluginTag->mFullPath.IsEmpty())
@@ -1408,6 +1427,7 @@ static nsresult CreateNPAPIPlugin(nsPluginTag *aPluginTag,
   rv = nsNPAPIPlugin::CreatePlugin(aPluginTag, aOutNPAPIPlugin);
 
   return rv;
+#endif
 }
 
 nsresult nsPluginHost::EnsurePluginLoaded(nsPluginTag* aPluginTag)

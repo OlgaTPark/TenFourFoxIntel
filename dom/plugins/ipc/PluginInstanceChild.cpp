@@ -106,8 +106,10 @@ struct RunnableMethodTraits<PluginInstanceChild>
 
 PluginInstanceChild::PluginInstanceChild(const NPPluginFuncs* aPluginIface)
     : mPluginIface(aPluginIface)
+#if(0)
 #if defined(XP_MACOSX)
     , mContentsScaleFactor(1.0)
+#endif
 #endif
     , mDrawingModel(kDefaultDrawingModel)
     , mCurrentAsyncSurface(0)
@@ -128,6 +130,7 @@ PluginInstanceChild::PluginInstanceChild(const NPPluginFuncs* aPluginIface)
     , mWinlessHiddenMsgHWND(0)
 #endif // OS_WIN
     , mAsyncCallMutex("PluginInstanceChild::mAsyncCallMutex")
+#if(0)
 #if defined(MOZ_WIDGET_COCOA)
 #if defined(__i386__)
     , mEventModel(NPEventModelCarbon)
@@ -136,6 +139,7 @@ PluginInstanceChild::PluginInstanceChild(const NPPluginFuncs* aPluginIface)
     , mShContext(nullptr)
     , mCGLayer(nullptr)
     , mCurrentEvent(nullptr)
+#endif
 #endif
     , mLayersRendering(false)
 #ifdef XP_WIN
@@ -183,6 +187,7 @@ PluginInstanceChild::~PluginInstanceChild()
 #if defined(OS_WIN)
     NS_ASSERTION(!mPluginWindowHWND, "Destroying PluginInstanceChild without NPP_Destroy?");
 #endif
+#if(0)
 #if defined(MOZ_WIDGET_COCOA)
     if (mShColorSpace) {
         ::CGColorSpaceRelease(mShColorSpace);
@@ -196,6 +201,7 @@ PluginInstanceChild::~PluginInstanceChild()
     if (mDrawingModel == NPDrawingModelCoreAnimation) {
         UnscheduleTimer(mCARefreshTimer);
     }
+#endif
 #endif
 }
 
@@ -401,6 +407,7 @@ PluginInstanceChild::NPN_GetValue(NPNVariable aVar,
     }
 #endif
 
+#if(0)
 #ifdef XP_MACOSX
    case NPNVsupportsCoreGraphicsBool: {
         *((NPBool*)aValue) = true;
@@ -451,6 +458,7 @@ PluginInstanceChild::NPN_GetValue(NPNVariable aVar,
         return NPERR_NO_ERROR;
     }
 #endif /* XP_MACOSX */
+#endif
 
 #ifdef DEBUG
     case NPNVjavascriptEnabledBool:
@@ -470,6 +478,7 @@ PluginInstanceChild::NPN_GetValue(NPNVariable aVar,
 
 }
 
+#if(0)
 #ifdef MOZ_WIDGET_COCOA
 #define DEFAULT_REFRESH_MS 20 // CoreAnimation: 50 FPS
 
@@ -486,6 +495,7 @@ PluginInstanceChild::Invalidate()
 
     InvalidateRect(&windowRect);
 }
+#endif
 #endif
 
 NPError
@@ -564,10 +574,12 @@ PluginInstanceChild::NPN_SetValue(NPPVariable aVar, void* aValue)
         }
         mDrawingModel = drawingModel;
 
+#if(0)
 #ifdef XP_MACOSX
         if (drawingModel == NPDrawingModelCoreAnimation) {
             mCARefreshTimer = ScheduleTimer(DEFAULT_REFRESH_MS, true, CAUpdate);
         }
+#endif
 #endif
 
         PLUGIN_LOG_DEBUG(("  Plugin requested drawing model id  #%i\n",
@@ -576,6 +588,7 @@ PluginInstanceChild::NPN_SetValue(NPPVariable aVar, void* aValue)
         return rv;
     }
 
+#if(0)
 #ifdef XP_MACOSX
     case NPPVpluginEventModel: {
         NPError rv;
@@ -592,6 +605,7 @@ PluginInstanceChild::NPN_SetValue(NPPVariable aVar, void* aValue)
 
         return rv;
     }
+#endif
 #endif
 
     default:
@@ -746,6 +760,7 @@ PluginInstanceChild::AnswerNPP_HandleEvent(const NPRemoteEvent& event,
                           event.event.xgraphicsexpose.drawable));
 #endif
 
+#if(0)
 #ifdef XP_MACOSX
     // Mac OS X does not define an NPEvent structure. It defines more specific types.
     NPCocoaEvent evcopy = event.event;
@@ -764,6 +779,7 @@ PluginInstanceChild::AnswerNPP_HandleEvent(const NPRemoteEvent& event,
 #else
     // Make a copy since we may modify values.
     NPEvent evcopy = event.event;
+#endif
 #endif
 
 #ifdef OS_WIN
@@ -793,11 +809,14 @@ PluginInstanceChild::AnswerNPP_HandleEvent(const NPRemoteEvent& event,
     // XXX A previous call to mPluginIface->event might block, e.g. right click
     // for context menu. Still, we might get here again, calling into the plugin
     // a second time while it's in the previous call.
+/*
     if (!mPluginIface->event)
         *handled = false;
     else
         *handled = mPluginIface->event(&mData, reinterpret_cast<void*>(&evcopy));
+*/
 
+#if(0)
 #ifdef XP_MACOSX
     // Release any reference counted objects created in the child process.
     if (evcopy.type == NPCocoaEventKeyDown ||
@@ -808,6 +827,7 @@ PluginInstanceChild::AnswerNPP_HandleEvent(const NPRemoteEvent& event,
     else if (evcopy.type == NPCocoaEventTextInput) {
       ::CFRelease((CFStringRef)evcopy.data.text.text);
     }
+#endif
 #endif
 
 #ifdef MOZ_X11
@@ -826,7 +846,7 @@ PluginInstanceChild::AnswerNPP_HandleEvent(const NPRemoteEvent& event,
     return true;
 }
 
-#ifdef XP_MACOSX
+#if (0) // def XP_MACOSX
 
 bool
 PluginInstanceChild::AnswerNPP_HandleEvent_Shmem(const NPRemoteEvent& event,
@@ -902,8 +922,18 @@ PluginInstanceChild::AnswerNPP_HandleEvent_Shmem(const NPRemoteEvent& event,
     *rtnmem = mem;
     return true;
 }
+bool
+PluginInstanceChild::AnswerNPP_HandleEvent_IOSurface(const NPRemoteEvent& event,
+                                                     const uint32_t &surfaceid,
+                                                     int16_t* handled)
+{
+    NS_RUNTIMEABORT("not reached.");
+    *handled = false;
+    return false;
+}
 #endif
 
+#if(0)
 #ifdef XP_MACOSX
 
 void CallCGDraw(CGContextRef ref, void* aPluginInstance, nsIntRect aUpdateRect) {
@@ -1005,6 +1035,7 @@ PluginInstanceChild::AnswerNPP_HandleEvent_IOSurface(const NPRemoteEvent& event,
     return false;
 }
 #endif
+#endif
 
 bool
 PluginInstanceChild::RecvWindowPosChanged(const NPRemoteEvent& event)
@@ -1024,6 +1055,7 @@ PluginInstanceChild::RecvWindowPosChanged(const NPRemoteEvent& event)
 bool
 PluginInstanceChild::RecvContentsScaleFactorChanged(const double& aContentsScaleFactor)
 {
+#if(0)
 #ifdef XP_MACOSX
     mContentsScaleFactor = aContentsScaleFactor;
     if (mShContext) {
@@ -1037,6 +1069,8 @@ PluginInstanceChild::RecvContentsScaleFactorChanged(const double& aContentsScale
     NS_RUNTIMEABORT("ContentsScaleFactorChanged is an OSX-only message");
     return false;
 #endif
+#endif
+    return false; // to make gcc happy
 }
 
 #if defined(MOZ_X11) && defined(XP_UNIX) && !defined(XP_MACOSX)
@@ -1226,6 +1260,7 @@ PluginInstanceChild::AnswerNPP_SetWindow(const NPRemoteWindow& aWindow)
     }
 
 #elif defined(XP_MACOSX)
+#if(0)
 
     mWindow.x = aWindow.x;
     mWindow.y = aWindow.y;
@@ -1245,6 +1280,7 @@ PluginInstanceChild::AnswerNPP_SetWindow(const NPRemoteWindow& aWindow)
     if (mPluginIface->setwindow)
         (void) mPluginIface->setwindow(&mData, &mWindow);
 
+#endif
 #elif defined(ANDROID)
     // TODO: Need Android impl
 #elif defined(MOZ_WIDGET_QT)
@@ -2814,8 +2850,10 @@ PluginInstanceChild::DoAsyncSetWindow(const gfxSurfaceType& aSurfaceType,
     mWindow.height = aWindow.height;
     mWindow.clipRect = aWindow.clipRect;
     mWindow.type = aWindow.type;
+#if(0)
 #ifdef XP_MACOSX
     mContentsScaleFactor = aWindow.contentsScaleFactor;
+#endif
 #endif
 
     if (GetQuirks() & PluginModuleChild::QUIRK_SILVERLIGHT_DEFAULT_TRANSPARENT)
@@ -3045,6 +3083,7 @@ PluginInstanceChild::EnsureCurrentBuffer(void)
 
     return true;
 #else // XP_MACOSX
+#if(0)
 
     if (!mDoubleBufferCARenderer.HasCALayer()) {
         void *caLayer = nullptr;
@@ -3101,6 +3140,8 @@ PluginInstanceChild::EnsureCurrentBuffer(void)
   
     return true;
 #endif
+#endif
+    return false; // to make gcc happy
 }
 
 void
@@ -3497,6 +3538,7 @@ PluginInstanceChild::ShowPluginFrame()
         return false;
     }
 
+#if(0)
 #ifdef MOZ_WIDGET_COCOA
     // We can't use the thebes code with CoreAnimation so we will
     // take a different code path.
@@ -3551,6 +3593,7 @@ PluginInstanceChild::ShowPluginFrame()
         NS_ERROR("Unsupported drawing model for async layer rendering");
         return false;
     }
+#endif
 #endif
 
     NS_ASSERTION(mWindow.width == uint32_t(mWindow.clipRect.right - mWindow.clipRect.left) &&
@@ -3969,6 +4012,7 @@ PluginInstanceChild::SwapSurfaces()
     mBackSurfaceActor = tmpactor;
 #endif
 
+#if(0)
 #ifdef MOZ_WIDGET_COCOA
     mDoubleBufferCARenderer.SwapSurfaces();
 
@@ -3992,16 +4036,19 @@ PluginInstanceChild::SwapSurfaces()
         ClearCurrentSurface();
     }
 #endif
+#endif
 }
 
 void
 PluginInstanceChild::ClearCurrentSurface()
 {
     mCurrentSurface = nullptr;
+#if(0)
 #ifdef MOZ_WIDGET_COCOA
     if (mDoubleBufferCARenderer.HasFrontSurface()) {
         mDoubleBufferCARenderer.ClearFrontSurface();
     }
+#endif
 #endif
 #ifdef XP_WIN
     if (mCurrentSurfaceActor) {
@@ -4040,6 +4087,7 @@ PluginInstanceChild::ClearAllSurfaces()
     }
 #endif
 
+#if(0)
 #ifdef MOZ_WIDGET_COCOA
     if (mDoubleBufferCARenderer.HasBackSurface()) {
         // Get last surface back, and drop it
@@ -4055,6 +4103,7 @@ PluginInstanceChild::ClearAllSurfaces()
 
     mDoubleBufferCARenderer.ClearFrontSurface();
     mDoubleBufferCARenderer.ClearBackSurface();
+#endif
 #endif
 }
 

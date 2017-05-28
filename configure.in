@@ -364,6 +364,11 @@ else
     AC_CHECK_PROGS(AR, ar, :)
     AC_CHECK_PROGS(LD, ld, :)
     AC_CHECK_PROGS(STRIP, strip, :)
+
+    # 10.4's strip won't work anymore
+    AC_MSG_WARN([Forcing strip to /opt/local/bin/strip])
+    STRIP="/opt/local/bin/strip"
+
     AC_CHECK_PROGS(WINDRES, windres, :)
     if test -z "$HOST_CC"; then
         HOST_CC="$CC"
@@ -1304,12 +1309,12 @@ if test "$GNU_CC"; then
     # may require gnu89 inline semantics.  But otherwise, we use C99.
     # But on OS X we just use C99 plus GNU extensions, in order to fix
     # bug 917526.
-    CFLAGS="$CFLAGS -std=gnu99"
-    if test "${OS_ARCH}" != Darwin; then
-        CFLAGS="$CFLAGS -fgnu89-inline"
-    fi
+    CFLAGS="$CFLAGS -std=gnu99 -fgnu89-inline"
+    #if test "${OS_ARCH}" != Darwin; then
+    #    CFLAGS="$CFLAGS -fgnu89-inline"
+    #fi
     # FIXME: Let us build with strict aliasing. bug 414641.
-    CFLAGS="$CFLAGS -fno-strict-aliasing"
+    CFLAGS="$CFLAGS -fno-strict-aliasing -fno-exceptions"
     MKSHLIB='$(CXX) $(CXXFLAGS) $(DSO_PIC_CFLAGS) $(DSO_LDOPTS) -Wl,-h,$(notdir $@) -o $@'
     MKCSHLIB='$(CC) $(CFLAGS) $(DSO_PIC_CFLAGS) $(DSO_LDOPTS) -Wl,-h,$(notdir $@) -o $@'
     DSO_LDOPTS='-shared'
@@ -1333,14 +1338,15 @@ if test "$GNU_CC"; then
     ASFLAGS="$ASFLAGS -fPIC"
     AC_MSG_CHECKING([for --noexecstack option to as])
     _SAVE_CFLAGS=$CFLAGS
-    CFLAGS="$CFLAGS -Wa,--noexecstack"
+# Tiger gcc-as takes --noexecstack, but actual as does not, so we force fail.
+    CFLAGS="$CFLAGS this_is_guaranteed_to_fail"
     AC_TRY_COMPILE(,,AC_MSG_RESULT([yes])
                      [ASFLAGS="$ASFLAGS -Wa,--noexecstack"],
                      AC_MSG_RESULT([no]))
     CFLAGS=$_SAVE_CFLAGS
     AC_MSG_CHECKING([for -z noexecstack option to ld])
     _SAVE_LDFLAGS=$LDFLAGS
-    LDFLAGS="$LDFLAGS -Wl,-z,noexecstack"
+    LDFLAGS="$LDFLAGS this_is_guaranteed_to_fail"
     AC_TRY_LINK(,,AC_MSG_RESULT([yes]),
                   AC_MSG_RESULT([no])
                   LDFLAGS=$_SAVE_LDFLAGS)
@@ -1671,6 +1677,8 @@ WINNT|Darwin) ;;
     MOZ_ENABLE_PROFILER_SPS=
     ;;
 esac
+dnl SPS doesn't support PPC, and we don't support SPS, so there.
+MOZ_ENABLE_PROFILER_SPS=
 
 if test -n "$MOZ_ENABLE_PROFILER_SPS"; then
     AC_DEFINE(MOZ_ENABLE_PROFILER_SPS)
@@ -3991,6 +3999,16 @@ MOZ_ARG_WITH_STRING(system-jpeg,
 _SAVE_CFLAGS=$CFLAGS
 _SAVE_LDFLAGS=$LDFLAGS
 _SAVE_LIBS=$LIBS
+
+dnl === TenFourFox issue 51
+if test -z "$MOZ_SYSTEM_JPEG" -a "${JPEG_DIR}" = "yes"; then
+        echo "Using OS X native libjpeg"
+        JPEG_DIR="/System/Library/Frameworks/ApplicationServices.framework/Frameworks/ImageIO.framework/Resources"
+        CFLAGS="-I${topsrcdir}/jpeg-imageio $CFLAGS"
+        LDFLAGS="-L${JPEG_DIR} $LDFLAGS"
+        AC_CHECK_LIB(JPEG, _cg_jpeg_destroy_compress, [MOZ_NATIVE_JPEG=1 MOZ_JPEG_LIBS="-L/System/Library/Frameworks/ApplicationServices.framework/Frameworks/ImageIO.framework/Resources -lJPEG" JPEG_CFLAGS="-I${topsrcdir}/jpeg-imageio"], MOZ_NATIVE_JPEG=)
+else
+
 if test -n "${JPEG_DIR}" -a "${JPEG_DIR}" != "yes"; then
     CFLAGS="-I${JPEG_DIR}/include $CFLAGS"
     LDFLAGS="-L${JPEG_DIR}/lib $LDFLAGS"
@@ -4001,15 +4019,14 @@ else
     AC_CHECK_LIB(jpeg, jpeg_destroy_compress, [MOZ_NATIVE_JPEG=1 MOZ_JPEG_LIBS="-ljpeg"], MOZ_NATIVE_JPEG=)
 fi
 
+fi
+
 if test "$MOZ_NATIVE_JPEG" = 1; then
     AC_TRY_COMPILE([ #include <stdio.h>
                      #include <sys/types.h>
                      #include <jpeglib.h> ],
                    [ #if JPEG_LIB_VERSION < $MOZJPEG
                      #error "Insufficient JPEG library version ($MOZJPEG required)."
-                     #endif
-                     #ifndef JCS_EXTENSIONS
-                     #error "libjpeg-turbo JCS_EXTENSIONS required"
                      #endif
                      ],
                    MOZ_NATIVE_JPEG=1,
@@ -4019,10 +4036,19 @@ CFLAGS=$_SAVE_CFLAGS
 LDFLAGS=$_SAVE_LDFLAGS
 LIBS=$_SAVE_LIBS
 
+dnl === TenFourFox issue 51
+if test "$MOZ_NATIVE_JPEG" = 1 -a "${JPEG_DIR}" = "/System/Library/Frameworks/ApplicationServices.framework/Frameworks/ImageIO.framework/Resources"; then
+ MOZ_JPEG_CFLAGS="-I${topsrcdir}/jpeg-imageio"
+ MOZ_JPEG_LIBS="-L${JPEG_DIR} ${MOZ_JPEG_LIBS}"
+else
+
 if test -n "${JPEG_DIR}" -a -d "${JPEG_DIR}" -a "$MOZ_NATIVE_JPEG" = 1; then
     MOZ_JPEG_CFLAGS="-I${JPEG_DIR}/include"
     MOZ_JPEG_LIBS="-L${JPEG_DIR}/lib ${MOZ_JPEG_LIBS}"
 fi
+
+fi
+
 fi # SKIP_LIBRARY_CHECKS
 
 dnl system ZLIB support
@@ -4590,8 +4616,8 @@ cairo-os2)
 cairo-cocoa)
     MOZ_WIDGET_TOOLKIT=cocoa
     AC_DEFINE(MOZ_WIDGET_COCOA)
-    LDFLAGS="$LDFLAGS -framework Cocoa -lobjc"
-    TK_LIBS='-framework QuartzCore -framework Carbon -framework CoreAudio -framework AudioToolbox -framework AudioUnit -framework AddressBook -framework OpenGL'
+    LDFLAGS="$LDFLAGS -framework Cocoa -lobjc -framework ApplicationServices"
+    TK_LIBS='-framework QuartzCore -framework Carbon -framework CoreAudio -framework AudioToolbox -framework AudioUnit -framework AddressBook -framework OpenGL -framework ApplicationServices'
     TK_CFLAGS="-DNO_X11"
     CFLAGS="$CFLAGS $TK_CFLAGS"
     CXXFLAGS="$CXXFLAGS $TK_CFLAGS"
@@ -6930,7 +6956,8 @@ dnl = Disable building with debug info.
 dnl = Debugging is OFF by default
 dnl ========================================================
 if test -z "$MOZ_DEBUG_FLAGS"; then
-  MOZ_DEBUG_FLAGS="-g"
+dnl There is no circumstance under which we build with regular symbols now.
+  MOZ_DEBUG_FLAGS="-gdwarf-2"
 fi
 
 MOZ_ARG_ENABLE_STRING(debug,
@@ -6985,6 +7012,38 @@ AC_SUBST(MOZ_GFX_OPTIMIZE_MOBILE)
 
 if test "$MOZ_GFX_OPTIMIZE_MOBILE"; then
     AC_DEFINE(MOZ_GFX_OPTIMIZE_MOBILE)
+fi
+
+dnl ==================================
+dnl AltiVec/VMX specific optimizations
+dnl ==================================
+MOZ_ARG_ENABLE_BOOL(tenfourfox-vmx,
+[  --enable-tenfourfox-vmx
+                  Turn on AltiVec-VMX specific options for TenFourFox],
+    TENFOURFOX_VMX=1)
+
+AC_SUBST(TENFOURFOX_VMX)
+
+if test "$TENFOURFOX_VMX"; then
+    AC_DEFINE(TENFOURFOX_VMX)
+    VPX_VMX_ASM=1
+    AC_DEFINE(VPX_VMX_ASM)
+fi
+
+AC_SUBST(VPX_VMX_ASM)
+
+dnl =========================
+dnl G5 specific optimizations
+dnl =========================
+MOZ_ARG_ENABLE_BOOL(tenfourfox-g5,
+[  --enable-tenfourfox-g5
+                  Turn on G5 specific options for TenFourFox],
+    TENFOURFOX_G5=1)
+
+AC_SUBST(TENFOURFOX_G5)
+
+if test "$TENFOURFOX_G5"; then
+    AC_DEFINE(TENFOURFOX_G5)
 fi
 
 dnl ========================================================
@@ -8128,11 +8187,12 @@ dnl ========================================================
 dnl Graphics checks.
 dnl ========================================================
 
-if test "${OS_TARGET}" = "WINNT" -o "${OS_ARCH}" = "Darwin" -o "${MOZ_WIDGET_TOOLKIT}" = "android" -o "${MOZ_WIDGET_TOOLKIT}" = "gtk2"; then
-MOZ_ENABLE_SKIA=1
-else
+dnl if test "${OS_TARGET}" = "WINNT" -o "${OS_ARCH}" = "Darwin" -o "${MOZ_WIDGET_TOOLKIT}" = "android" -o "${MOZ_WIDGET_TOOLKIT}" = "gtk2"; then
+dnl MOZ_ENABLE_SKIA=1
+dnl else
+dnl 10.4 is not able to compile Skia yet.
 MOZ_ENABLE_SKIA=
-fi
+dnl fi
 
 MOZ_ARG_ENABLE_BOOL(skia,
 [  --enable-skia   Enable use of Skia],
@@ -9191,6 +9251,12 @@ fi
 # Don't try to compile ssse3/sse4.1 code if toolchain doesn't support
 if test -z "$HAVE_TOOLCHAIN_SUPPORT_SSSE3" || test -z "$HAVE_TOOLCHAIN_SUPPORT_MSSE4_1"; then
   EXTRA_GYP_DEFINES="$EXTRA_GYP_DEFINES -D yuv_disable_asm=1"
+fi
+
+if test "$TENFOURFOX_VMX"; then
+   EXTRA_GYP_DEFINES="$EXTRA_GYP_DEFINES -D tenfourfox_vmx=1"
+else
+   EXTRA_GYP_DEFINES="$EXTRA_GYP_DEFINES -D tenfourfox_vmx=0"
 fi
 
 if test -n "$MOZ_WEBRTC"; then

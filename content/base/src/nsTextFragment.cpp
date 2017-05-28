@@ -158,6 +158,13 @@ namespace mozilla {
   }
 }
 #endif
+#ifdef TENFOURFOX_VMX
+namespace mozilla {
+  namespace VMX {
+    int32_t FirstNon8Bit(const PRUnichar *str, const PRUnichar *end);
+  }
+}
+#endif
 
 /*
  * This function returns -1 if all characters in str are 8 bit characters.
@@ -173,6 +180,9 @@ FirstNon8Bit(const PRUnichar *str, const PRUnichar *end)
   if (mozilla::supports_sse2()) {
     return mozilla::SSE2::FirstNon8Bit(str, end);
   }
+#endif
+#ifdef TENFOURFOX_VMX
+  return mozilla::VMX::FirstNon8Bit(str, end);
 #endif
 
   return FirstNon8BitUnvectorized(str, end);

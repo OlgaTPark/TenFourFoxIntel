@@ -111,8 +111,10 @@ PluginModuleChild::PluginModuleChild()
     memset(&mSavedData, 0, sizeof(mSavedData));
     gInstance = this;
     mUserAgent.SetIsVoid(true);
+#if(0)
 #ifdef XP_MACOSX
     mac_plugin_interposing::child::SetUpCocoaInterposing();
+#endif
 #endif
 }
 
@@ -182,7 +184,9 @@ PluginModuleChild::Init(const std::string& aPluginFilename,
         AddQuirk(QUIRK_FLASH_EXPOSE_COORD_TRANSLATION);
     }
 #else // defined(OS_MACOSX)
+#if(0)
     mozilla::plugins::PluginUtilsOSX::SetProcessName(info.fName);
+#endif
 #endif
 
     if (!mLibrary)
@@ -1723,6 +1727,7 @@ _popupcontextmenu(NPP instance, NPMenu* menu)
     PLUGIN_LOG_DEBUG_FUNCTION;
     AssertPluginThread();
 
+#if(0)
 #ifdef MOZ_WIDGET_COCOA
     double pluginX, pluginY; 
     double screenX, screenY;
@@ -1766,6 +1771,8 @@ _popupcontextmenu(NPP instance, NPMenu* menu)
     NS_WARNING("Not supported on this platform!");
     return NPERR_GENERIC_ERROR;
 #endif
+#endif
+    return NPERR_GENERIC_ERROR; // to make gcc deliriously happy
 }
 
 NPBool NP_CALLBACK

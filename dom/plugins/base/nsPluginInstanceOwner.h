@@ -277,6 +277,7 @@ private:
   nsCOMPtr<nsIWidget>         mWidget;
   nsRefPtr<nsPluginHost>      mPluginHost;
   
+#if(0) // 10.4Fx no haz
 #ifdef XP_MACOSX
   NP_CGContext                              mCGPluginPortCopy;
   int32_t                                   mInCGPaintLevel;
@@ -286,6 +287,7 @@ private:
   static nsCOMPtr<nsITimer>                *sCATimer;
   static nsTArray<nsPluginInstanceOwner*>  *sCARefreshListeners;
   bool                                      mSentInitialTopLevelWindowEvent;
+#endif
 #endif
 
   // Initially, the event loop nesting level we were created on, it's updated

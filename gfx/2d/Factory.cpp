@@ -169,6 +169,16 @@ Factory::HasSSE2()
 #endif
 }
 
+bool
+Factory::HasVMX()
+{
+#ifdef TENFOURFOX_VMX
+  return true;
+#else
+  return false;
+#endif
+}
+
 TemporaryRef<DrawTarget>
 Factory::CreateDrawTarget(BackendType aBackend, const IntSize &aSize, SurfaceFormat aFormat)
 {

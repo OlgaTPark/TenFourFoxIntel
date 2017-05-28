@@ -5,6 +5,8 @@
 
 #include <ApplicationServices/ApplicationServices.h>
 
+typedef float CGFloat; // 10.4
+
 #include "2D.h"
 #include "Rect.h"
 #include "PathCG.h"

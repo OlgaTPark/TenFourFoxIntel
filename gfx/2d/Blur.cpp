@@ -10,6 +10,11 @@
 #include <math.h>
 #include <string.h>
 
+#define BENCHMARK_VMX 0
+#if BENCHMARK_VMX
+#include <sys/time.h>
+#endif
+
 #include "mozilla/CheckedInt.h"
 #include "mozilla/Constants.h"
 #include "mozilla/Util.h"
@@ -444,6 +449,15 @@ AlphaBoxBlur::GetDirtyRect()
   return nullptr;
 }
 
+#if BENCHMARK_VMX
+double t() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    return (tv.tv_sec * 1000.0) + ((double)tv.tv_usec / 1000.0);
+}
+#endif
+
 int32_t
 AlphaBoxBlur::GetSurfaceAllocationSize() const
 {
@@ -541,6 +555,34 @@ AlphaBoxBlur::Blur(uint8_t* aData)
                      verticalLobes[1][1], integralImage, integralImageStride);
         BoxBlur_SSE2(aData, horizontalLobes[2][0], horizontalLobes[2][1], verticalLobes[2][0],
                      verticalLobes[2][1], integralImage, integralImageStride);
+      } else
+#elif defined(USE_VMX)
+      if (Factory::HasVMX()) {
+#if BENCHMARK_VMX
+double t0, t1, tdiff;
+t0 = t();
+        BoxBlur_C(aData, horizontalLobes[0][0], horizontalLobes[0][1], verticalLobes[0][0],
+                  verticalLobes[0][1], integralImage, integralImageStride);
+        BoxBlur_C(aData, horizontalLobes[1][0], horizontalLobes[1][1], verticalLobes[1][0],
+                  verticalLobes[1][1], integralImage, integralImageStride);
+        BoxBlur_C(aData, horizontalLobes[2][0], horizontalLobes[2][1], verticalLobes[2][0],
+                  verticalLobes[2][1], integralImage, integralImageStride);
+t1 = t();
+tdiff = t1 - t0;
+
+t0 = t();
+#endif
+        BoxBlur_VMX(aData, horizontalLobes[0][0], horizontalLobes[0][1], verticalLobes[0][0],
+                    verticalLobes[0][1], integralImage, integralImageStride);
+        BoxBlur_VMX(aData, horizontalLobes[1][0], horizontalLobes[1][1], verticalLobes[1][0],
+                    verticalLobes[1][1], integralImage, integralImageStride);
+        BoxBlur_VMX(aData, horizontalLobes[2][0], horizontalLobes[2][1], verticalLobes[2][0],
+                    verticalLobes[2][1], integralImage, integralImageStride);
+#if BENCHMARK_VMX
+t1 = t();
+
+printf("C/VMX: %g\n", 100 - (((t1 - t0) / tdiff) * 100));
+#endif
       } else
 #endif
       {

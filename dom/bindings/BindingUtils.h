@@ -1302,11 +1302,12 @@ GetCallbackFromCallbackObject(T& aObj)
   return GetCallbackFromCallbackObjectHelper<T>::Get(aObj);
 }
 
+// id is a reserved word to our gcc 4.6.3.
 static inline bool
-InternJSString(JSContext* cx, jsid& id, const char* chars)
+InternJSString(JSContext* cx, jsid& jid, const char* chars)
 {
   if (JSString *str = ::JS_InternString(cx, chars)) {
-    id = INTERNED_STRING_TO_JSID(cx, str);
+    jid = INTERNED_STRING_TO_JSID(cx, str);
     return true;
   }
   return false;
