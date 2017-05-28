@@ -32,6 +32,9 @@ class EventWrapper;
 class ThreadWrapper;
 class Trace;
 
+namespace videocapturemodule
+{
+
 class VideoCaptureMacQuickTimeInfo: public DeviceInfoImpl
 {
 public:
@@ -162,5 +165,6 @@ private:
     WebRtc_Word64 _captureDeviceListTime;
     ListWrapper _captureCapabilityList;
 };
+}  // namespace videocapturemodule
 }  // namespace webrtc
 #endif  // WEBRTC_MODULES_VIDEO_CAPTURE_MAIN_SOURCE_MAC_QUICKTIME_VIDEO_CAPTURE_QUICK_TIME_INFO_H_

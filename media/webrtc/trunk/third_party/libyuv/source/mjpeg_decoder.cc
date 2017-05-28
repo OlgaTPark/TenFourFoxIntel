@@ -20,7 +20,11 @@
 #include <stdlib.h>
 
 extern "C" {
-#include <jpeglib.h>
+#ifdef TENFOURFOX_VMX
+#include "../../../../../../../jpeg-imageio/jpeglib.h"
+#else
+#include "../../../../../../../media/libjpeg/jpeglib.h"
+#endif
 }
 
 #include <climits>

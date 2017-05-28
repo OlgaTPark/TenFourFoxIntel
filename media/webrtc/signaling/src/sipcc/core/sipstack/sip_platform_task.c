@@ -206,6 +206,9 @@ static cpr_socket_t sip_create_IPC_sock (const char *name)
     cpr_sockaddr_un_t addr;
 
     /* Create socket */
+// 10.4 doesn't have this constant.
+#define AF_LOCAL 1
+
     sock = cprSocket(AF_LOCAL, SOCK_DGRAM, 0);
     if (sock == INVALID_SOCKET) {
         CCSIP_DEBUG_ERROR(SIP_F_PREFIX"cprSocket() returned error"

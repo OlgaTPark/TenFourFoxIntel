@@ -61,18 +61,11 @@
             }],  # linux
             ['OS=="mac"', {
               'sources': [
-                'mac/qtkit/video_capture_qtkit.h',
-                'mac/qtkit/video_capture_qtkit.mm',
-                'mac/qtkit/video_capture_qtkit_info.h',
-                'mac/qtkit/video_capture_qtkit_info.mm',
-                'mac/qtkit/video_capture_qtkit_info_objc.h',
-                'mac/qtkit/video_capture_qtkit_info_objc.mm',
-                'mac/qtkit/video_capture_qtkit_objc.h',
-                'mac/qtkit/video_capture_qtkit_objc.mm',
-                'mac/qtkit/video_capture_qtkit_utility.h',
-                'mac/qtkit/video_capture_recursive_lock.h',
-                'mac/qtkit/video_capture_recursive_lock.mm',
+                'mac/quicktime/video_capture_quick_time.h',
+                'mac/quicktime/video_capture_quick_time_info.h',
                 'mac/video_capture_mac.mm',
+                'mac/quicktime/video_capture_quick_time.cc',
+                'mac/quicktime/video_capture_quick_time_info.cc',
               ],
               'include_dirs': [
                 'mac',

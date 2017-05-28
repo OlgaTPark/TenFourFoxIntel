@@ -7,11 +7,10 @@
 
   body {
     color: #eee;
-    background: #222 url("chrome://global/skin/media/imagedoc-darknoise.png");
+    background: #333;
   }
 
   img.decoded {
-    background: hsl(0,0%,90%) url("chrome://global/skin/media/imagedoc-lightnoise.png");
     color: #222;
   }
 }

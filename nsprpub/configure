@@ -3864,7 +3864,7 @@ EOF
             ;;
     esac
     if test "`echo $CC | grep -c '\-arch '`" = "0"; then
-        CC="$CC -arch $CPU_ARCH"
+        CC="$CC"
     fi
     ac_safe=`echo "crt_externs.h" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for crt_externs.h""... $ac_c" 1>&6

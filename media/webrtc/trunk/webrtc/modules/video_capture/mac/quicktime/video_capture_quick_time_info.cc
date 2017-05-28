@@ -24,6 +24,8 @@
 
 namespace webrtc
 {
+namespace videocapturemodule
+{
 
 VideoCaptureMacQuickTimeInfo::VideoCaptureMacQuickTimeInfo(
     const WebRtc_Word32 iID) :
@@ -388,4 +390,5 @@ VideoCaptureMacQuickTimeInfo::VideoCaptureMacName::VideoCaptureMacName() :
 {
     memset(_name, 0, kVideoCaptureMacNameMaxSize);
 }
+}  // namespace videocapturemodule
 }  // namespace webrtc

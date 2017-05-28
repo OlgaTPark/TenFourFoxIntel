@@ -34,6 +34,9 @@ class CriticalSectionWrapper;
 class EventWrapper;
 class ThreadWrapper;
 
+namespace videocapturemodule
+{
+
 class VideoCaptureMacQuickTime : public VideoCaptureImpl
 {
 
@@ -129,5 +132,6 @@ private: // variables
     unsigned long           _captureDeviceListTime;
     ListWrapper             _captureCapabilityList;
 };
+}  // namespace videocapturemodule
 }  // namespace webrtc
 #endif  // WEBRTC_MODULES_VIDEO_CAPTURE_MAIN_SOURCE_MAC_QUICKTIME_VIDEO_CAPTURE_QUICK_TIME_H_

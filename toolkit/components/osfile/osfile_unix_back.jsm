@@ -269,6 +269,10 @@
                     /*state*/  Types.void_t.in_ptr, // Ignored atm
                     /*flags*/  Types.uint32_t);
 
+/* Unfortunately, this will succeed, but copyfile(3) in 10.4 is bogus and
+   doesn't actually work. So ... */
+	UnixFile.copyfile = null;
+
        UnixFile.dup =
          declareFFI("dup", ctypes.default_abi,
                     /*return*/ Types.negativeone_or_fd,

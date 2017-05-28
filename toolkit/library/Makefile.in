@@ -358,6 +358,7 @@ EXTRA_DSO_LDOPTS += \
   $(MOZ_CAIRO_OSLIBS) \
   $(MOZ_APP_EXTRA_LIBS) \
   $(SQLITE_LIBS) \
+  $(MOZ_OTS_LIBS) \
   $(NULL)
 
 ifdef MOZ_NATIVE_JPEG
@@ -501,11 +502,15 @@ ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
 CXXFLAGS += $(TK_CFLAGS)
 OS_LIBS += \
   -framework SystemConfiguration \
-  -framework QTKit \
+  -framework QuickTime \
+  -framework Carbon \
   -framework IOKit \
-  -F/System/Library/PrivateFrameworks -framework CoreUI \
   $(TK_LIBS) \
   $(NULL)
+endif
+
+ifdef TENFOURFOX_VMX
+OS_LIBS += -read_only_relocs suppress
 endif
 
 ifeq (OpenBSD,$(OS_ARCH))

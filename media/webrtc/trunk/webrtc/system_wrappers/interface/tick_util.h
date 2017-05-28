@@ -214,7 +214,11 @@ inline WebRtc_Word64 TickTime::QueryOsForTicks() {
       // TODO(wu): Implement CHECK similar to chrome for all the platforms.
       // Then replace this with a CHECK(retval == KERN_SUCCESS);
 #ifndef WEBRTC_IOS
+#ifdef __ppc__
+      asm("trap\n");
+#else
       asm("int3");
+#endif
 #else
       __builtin_trap();
 #endif  // WEBRTC_SYSTEM_WRAPPERS_INTERFACE_TICK_UTIL_H_

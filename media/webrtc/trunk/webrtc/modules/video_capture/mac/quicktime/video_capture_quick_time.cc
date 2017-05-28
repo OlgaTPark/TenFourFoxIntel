@@ -16,7 +16,7 @@
 
 #include "video_capture_quick_time.h"
 
-#include "CriticalSectionWrapper.h"
+#include "critical_section_wrapper.h"
 #include "event_wrapper.h"
 #include "thread_wrapper.h"
 #include "tick_util.h"
@@ -24,6 +24,8 @@
 #include <unistd.h>
 
 namespace webrtc
+{
+namespace videocapturemodule
 {
 
 VideoCaptureMacQuickTime::VideoCaptureMacQuickTime(WebRtc_Word32 iID) :
@@ -65,7 +67,7 @@ VideoCaptureMacQuickTime::~VideoCaptureMacQuickTime()
 }
 
 WebRtc_Word32 VideoCaptureMacQuickTime::Init(
-    const WebRtc_Word32 id, const char* deviceUniqueIdUTF8)
+    const WebRtc_Word32 id, const WebRtc_UWord8* deviceUniqueIdUTF8)
 {
 
     const WebRtc_Word32 nameLength =
@@ -1385,4 +1387,5 @@ CFIndex VideoCaptureMacQuickTime::PascalStringToCString(
     CFRelease(cfString);
     return cStringLength;
 }
+}  // namespace videocapturemodule
 }  // namespace webrtc

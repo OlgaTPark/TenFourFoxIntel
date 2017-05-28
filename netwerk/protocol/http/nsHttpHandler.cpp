@@ -65,6 +65,8 @@
 #include <os2.h>
 #endif
 
+#include "OptimizedFor.h" // 10.4Fx
+
 //-----------------------------------------------------------------------------
 using namespace mozilla;
 using namespace mozilla::net;
@@ -584,6 +586,11 @@ nsHttpHandler::BuildUserAgent()
                            mAppVersion.Length() +
                            mCompatFirefox.Length() +
                            mCompatDevice.Length() +
+#ifdef FX104_OPTIMIZED_FOR
+                           // needs to be length of SP "TenFourFox/Debugging"
+                           // this is the longest string we support
+                           21 +
+#endif
                            13);
 
     // Application portion
@@ -630,6 +637,10 @@ nsHttpHandler::BuildUserAgent()
         mUserAgent += '/';
         mUserAgent += mAppVersion;
     }
+
+#ifdef FX104_OPTIMIZED_FOR
+    mUserAgent.AppendLiteral(" TenFourFox/" FX104_OPTIMIZED_FOR );
+#endif
 }
 
 #ifdef XP_WIN

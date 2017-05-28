@@ -40,6 +40,13 @@ struct vp8_recon_rtcd_vtable;
 #include "arm/recon_arm.h"
 #endif
 
+#if HAVE_ALTIVEC
+#define vp8_recon_copy16x16 copy_mem16x16_ppc
+#define vp8_recon_recon recon_b_ppc
+#define vp8_recon_recon2 recon2b_ppc
+#define vp8_recon_recon4 recon4b_ppc
+#endif
+
 #ifndef vp8_recon_copy16x16
 #define vp8_recon_copy16x16 vp8_copy_mem16x16_c
 #endif

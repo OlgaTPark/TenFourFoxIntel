@@ -24,6 +24,17 @@
 #include "arm/subpixel_arm.h"
 #endif
 
+#if HAVE_ALTIVEC
+#define vp8_subpix_sixtap16x16 sixtap_predict16x16_ppc
+#define vp8_subpix_sixtap8x8 sixtap_predict8x8_ppc
+#define vp8_subpix_sixtap8x4 sixtap_predict8x4_ppc
+#define vp8_subpix_sixtap4x4 sixtap_predict_ppc
+#define vp8_subpix_bilinear16x16 bilinear_predict16x16_ppc
+#define vp8_subpix_bilinear8x8 bilinear_predict8x8_ppc
+#define vp8_subpix_bilinear8x4 bilinear_predict8x4_ppc
+#define vp8_subpix_bilinear4x4 bilinear_predict4x4_ppc
+#endif
+
 #ifndef vp8_subpix_sixtap16x16
 #define vp8_subpix_sixtap16x16 vp8_sixtap_predict16x16_c
 #endif

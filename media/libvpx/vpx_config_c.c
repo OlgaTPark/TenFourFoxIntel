@@ -36,6 +36,11 @@
 #error VPX_ARM_ASM is defined, but assembly not supported on this platform!
 #endif
 
+//#elif 1
+// defined powerpc
+//#warning G3G3G3G3G3G3G3G3G3G3G3G3G3G3G3G3G3G3G3G3G3G3G3
+//#include "vpx_config_tenfourfox_altivec.c"
+
 #else
 /* Assume generic GNU/GCC configuration. */
 #include "vpx_config_generic-gnu.c"

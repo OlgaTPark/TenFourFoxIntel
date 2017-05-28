@@ -17,10 +17,10 @@
 
 #include <stdio.h>
 extern "C" {
-#if defined(USE_SYSTEM_LIBJPEG)
-#include <jpeglib.h>
+#ifdef TENFOURFOX_VMX
+#include "../../../../../../../jpeg-imageio/jpeglib.h"
 #else
-#include "jpeglib.h"
+#include "../../../../../../../media/libjpeg/jpeglib.h"
 #endif
 }
 

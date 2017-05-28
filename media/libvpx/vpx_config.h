@@ -38,6 +38,16 @@
 #error VPX_ARM_ASM is defined, but assembly not supported on this platform!
 #endif
 
+#elif defined(VPX_VMX_ASM)
+
+#if defined(TENFOURFOX_VMX)
+/* Assume TenFourFox, building on OS X. This defines HAVE_ALTIVEC. */
+#include "vpx_config_tenfourfox_altivec.h"
+
+#else
+#error VPX_VMX_ASM is defined, but assembly not supported on this platform!
+#endif
+
 #else
 /* Assume generic GNU/GCC configuration. */
 #include "vpx_config_generic-gnu.h"

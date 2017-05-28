@@ -255,6 +255,8 @@ sip_platform_udp_channel_create (cpr_ip_mode_e ip_mode, cpr_socket_t *s,
     config_get_value(CFGID_DSCP_FOR_CALL_CONTROL, (int *)&tos_dscp_val,
                      sizeof(tos_dscp_val));
 
+// 10.4 doesn't have this constant.
+#define IP_TOS 3
     if (cprSetSockOpt(*s, SOL_IP, IP_TOS, (void *)&tos_dscp_val,
                       sizeof(tos_dscp_val)) == CPR_FAILURE) {
         // do NOT take hard action; just log the error and move on
