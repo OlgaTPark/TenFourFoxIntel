@@ -67,6 +67,7 @@ gfxPlatformMac::gfxPlatformMac()
     mOSXVersion = 0;
     OSXVersion();
 
+    if (mOSXVersion >= MAC_OS_X_VERSION_10_6_HEX) // backout bug 850408
     DisableFontActivation();
     mFontAntiAliasingThreshold = ReadAntiAliasingThreshold();
 
@@ -77,7 +78,9 @@ gfxPlatformMac::gfxPlatformMac()
 
 gfxPlatformMac::~gfxPlatformMac()
 {
+#if(0)
     gfxCoreTextShaper::Shutdown();
+#endif
 }
 
 gfxPlatformFontList*
@@ -202,7 +205,9 @@ gfxPlatformMac::IsFontFormatSupported(nsIURI *aFontURI, uint32_t aFormatFlags)
     if (aFormatFlags & (gfxUserFontSet::FLAG_FORMAT_WOFF     |
                         gfxUserFontSet::FLAG_FORMAT_OPENTYPE | 
                         gfxUserFontSet::FLAG_FORMAT_TRUETYPE | 
-                        gfxUserFontSet::FLAG_FORMAT_TRUETYPE_AAT)) {
+                        //gfxUserFontSet::FLAG_FORMAT_TRUETYPE_AAT)) {
+			// We do not support AAT in TenFourFox (issue 5).
+			0)) {
         return true;
     }
 
@@ -465,7 +470,8 @@ gfxPlatformMac::GetPlatformCMSOutputProfile()
        corresponds directly to a CGSDisplayID */
     CGDirectDisplayID displayID = CGMainDisplayID();
 
-    CMError err = CMGetProfileByAVID(static_cast<CMDisplayIDType>(displayID), &cmProfile);
+    //CMError err = CMGetProfileByAVID(static_cast<CMDisplayIDType>(displayID), &cmProfile);
+    CMError err = CMGetProfileByAVID((CMDisplayIDType)displayID, &cmProfile);
     if (err != noErr)
         return nullptr;
 

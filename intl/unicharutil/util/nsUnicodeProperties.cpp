@@ -263,6 +263,11 @@ IsClusterExtender(uint32_t aCh, uint8_t aCategory)
 int32_t
 ScriptShapingType(int32_t aScriptCode)
 {
+#if(1)
+// This is clearly wrong, but it's the best we can do. 10.4Fx issue 5
+#warning XXX ScriptShapingLevel for all scripts will always be true
+    return SHAPING_DEFAULT;
+#else
     switch (aScriptCode) {
     default:
         return SHAPING_DEFAULT; // scripts not explicitly listed here are
@@ -308,6 +313,7 @@ ScriptShapingType(int32_t aScriptCode)
     case MOZ_SCRIPT_BRAHMI:
         return SHAPING_INDIC; // scripts that require Indic or other "special" shaping
     }
+#endif
 }
 
 void

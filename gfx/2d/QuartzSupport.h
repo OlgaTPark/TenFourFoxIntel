@@ -9,7 +9,6 @@
 #ifdef XP_MACOSX
 
 #import <OpenGL/OpenGL.h>
-#import <OpenGL/gl.h>
 #import "ApplicationServices/ApplicationServices.h"
 #include "gfxTypes.h"
 #include "mozilla/RefPtr.h"
@@ -24,6 +23,8 @@ struct _CGLContextObject;
 
 enum AllowOfflineRendererEnum { ALLOW_OFFLINE_RENDERER, DISALLOW_OFFLINE_RENDERER };
 
+// 10.4 doesn't support CoreAnimation.
+#if(0)
 class nsCARenderer : public mozilla::RefCounted<nsCARenderer> {
 public:
   nsCARenderer() : mCARenderer(nullptr), mWrapperCALayer(nullptr), mFBOTexture(0),
@@ -91,6 +92,7 @@ private:
   AllowOfflineRendererEnum  mAllowOfflineRenderer;
   double                    mContentsScaleFactor;
 };
+#endif
 
 enum CGContextType {
   CG_CONTEXT_TYPE_UNKNOWN = 0,

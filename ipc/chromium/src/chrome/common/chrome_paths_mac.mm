@@ -49,7 +49,9 @@ bool GetUserDocumentsDirectory(FilePath* result) {
 bool GetUserDownloadsDirectory(FilePath* result) {
   bool success = false;
   NSArray* docArray =
-      NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory,
+	// We don't use this anyway.
+      //NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory,
+      NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
                                           NSUserDomainMask,
                                           YES);
   if ([docArray count] && result) {

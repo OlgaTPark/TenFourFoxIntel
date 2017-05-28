@@ -58,9 +58,12 @@ public:
     NSOpenGLPixelFormat *PixelFormat()
     {
         if (mPixelFormat == nullptr) {
+// This doesn't work at all on 10.4 now.
+#if(0)
             NSOpenGLPixelFormatAttribute attribs[] = {
                 NSOpenGLPFAAccelerated,
-                NSOpenGLPFAAllowOfflineRenderers,
+		// 10.4 doesn't have this.
+                //NSOpenGLPFAAllowOfflineRenderers,
                 NSOpenGLPFADoubleBuffer,
                 0
             };
@@ -70,6 +73,7 @@ public:
             }
 
             mPixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
+#endif
         }
 
         return mPixelFormat;
@@ -136,8 +140,10 @@ public:
 
         if (mContext) {
             [mContext makeCurrentContext];
+#if(0)
             GLint swapInt = 1;
             [mContext setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
+#endif
         }
         return true;
     }
@@ -191,9 +197,11 @@ public:
     virtual void ReleaseSharedHandle(SharedTextureShareType shareType,
                                      SharedTextureHandle sharedHandle)
     {
+#if(0)
         if (sharedHandle) {
             reinterpret_cast<MacIOSurface*>(sharedHandle)->Release();
         }
+#endif
     }
 
     virtual bool GetSharedHandleDetails(SharedTextureShareType shareType,
@@ -208,9 +216,11 @@ public:
     virtual bool AttachSharedHandle(SharedTextureShareType shareType,
                                     SharedTextureHandle sharedHandle)
     {
+#if(0)
         MacIOSurface* surf = reinterpret_cast<MacIOSurface*>(sharedHandle);
         surf->CGLTexImageIOSurface2D(mContext, LOCAL_GL_RGBA, LOCAL_GL_BGRA,
                                      LOCAL_GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+#endif
         return true;
     }
 
@@ -499,6 +509,7 @@ GLContextProviderCGL::CreateSharedHandle(GLContext::SharedTextureShareType share
                                          void* buffer,
                                          GLContext::SharedTextureBufferType bufferType)
 {
+#if(0)
     if (shareType != GLContext::SameProcess ||
         bufferType != GLContext::IOSurface) {
         return 0;
@@ -508,12 +519,16 @@ GLContextProviderCGL::CreateSharedHandle(GLContext::SharedTextureShareType share
     surf->AddRef();
 
     return (SharedTextureHandle)surf;
+#else
+    return (SharedTextureHandle)nullptr;
+#endif
 }
 
 already_AddRefed<gfxASurface>
 GLContextProviderCGL::GetSharedHandleAsSurface(GLContext::SharedTextureShareType shareType,
                                                SharedTextureHandle sharedHandle)
 {
+#if(0)
   MacIOSurface* surf = reinterpret_cast<MacIOSurface*>(sharedHandle);
   surf->Lock();
   size_t bytesPerRow = surf->GetBytesPerRow();
@@ -533,6 +548,9 @@ GLContextProviderCGL::GetSharedHandleAsSurface(GLContext::SharedTextureShareType
   surf->Unlock();
 
   return imgSurface.forget();
+#else
+  return nullptr;
+#endif
 }
 
 void

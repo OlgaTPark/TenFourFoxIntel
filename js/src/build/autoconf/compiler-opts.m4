@@ -33,8 +33,9 @@ case "$target" in
         HOST_LDFLAGS=" "
     fi
     ;;
-*-darwin*)
+*-darwincomestojesus*)
     # GCC on darwin is based on gcc 4.2 and we don't support it anymore.
+    # Hah! Just kidding!
     if test -z "$CC"; then
         MOZ_PATH_PROGS(CC, clang)
     fi
@@ -104,8 +105,9 @@ if test -z "$GNU_CC"; then
 fi
 
 if test "$GNU_CC"; then
-    CFLAGS="$CFLAGS -ffunction-sections -fdata-sections"
-    CXXFLAGS="$CXXFLAGS -ffunction-sections -fdata-sections -fno-exceptions"
+dnl -ffunction-sections and -fdata-sections worsen perf on TenFourFox.
+    CFLAGS="$CFLAGS"
+    CXXFLAGS="$CXXFLAGS"
 fi
 
 dnl ========================================================

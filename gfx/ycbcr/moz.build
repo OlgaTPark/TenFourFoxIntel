@@ -18,6 +18,7 @@ CPP_SOURCES += [
     'yuv_convert.cpp',
     'yuv_row_c.cpp',
     'yuv_row_table.cpp',
+    'yuv_convert_ppc.cpp',
 ]
 
 if CONFIG['INTEL_ARCHITECTURE']:

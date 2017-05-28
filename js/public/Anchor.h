@@ -125,7 +125,7 @@ inline Anchor<T>::~Anchor()
      * G++ will assume that all memory has changed after the asm, as it would for a
      * call to an unknown function. I don't know of a way to avoid that consequence.
      */
-    asm volatile("":: "g" (hold) : "memory");
+    asm volatile("":: "X" (hold) : "memory");
 #else
     /*
      * An adequate portable substitute, for non-structure types.

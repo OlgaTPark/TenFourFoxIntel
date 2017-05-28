@@ -31,6 +31,10 @@ SK_DEFINE_INST_COUNT(SkAdvancedTypefaceMetrics)
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
+typedef unsigned int PRUint32;
+typedef int PRInt32;
+#include "../../../thebes/PhonyCoreText.h"
+
 namespace skia_advanced_typeface_metrics_utils {
 
 const int16_t kInvalidAdvance = SK_MinS16;

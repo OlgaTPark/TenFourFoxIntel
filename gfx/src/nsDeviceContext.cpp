@@ -381,6 +381,8 @@ nsDeviceContext::CreateRenderingContext(nsRenderingContext *&aContext)
     if (!printingSurface) {
       printingSurface = mCachedPrintingSurface;
     }
+    // That was a wonderful idea, Steven, but it doesn't work.
+    NS_ABORT_IF_FALSE(printingSurface, "only call for printing dcs");
 #endif
     nsRefPtr<nsRenderingContext> pContext = new nsRenderingContext();
 
@@ -554,7 +556,12 @@ nsDeviceContext::EndPage(void)
     // would normally be null.  See bug 665218.  If we just stop nulling out
     // mPrintingSurface here (and thereby make that our cached copy), we'll
     // break all our null checks on mPrintingSurface.  See bug 684622.
+#if(0)
+    // Unfortunately, caching our printing service is still enough to keep
+    // the reference around, and printing won't work on 10.4 unless it's
+    // actually destroyed (TenFourFox issue 82).
     mCachedPrintingSurface = mPrintingSurface;
+#endif
     mPrintingSurface = nullptr;
 #endif
 

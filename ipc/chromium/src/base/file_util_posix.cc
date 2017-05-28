@@ -8,6 +8,8 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <fnmatch.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #ifndef ANDROID
 #include <fts.h>
 #endif
@@ -17,8 +19,6 @@
 #include <sys/errno.h>
 #include <sys/mman.h>
 #define _DARWIN_USE_64_BIT_INODE // Use 64-bit inode data structures
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -63,6 +63,9 @@ bool AbsolutePath(FilePath* path) {
 
 int CountFilesCreatedAfter(const FilePath& path,
                            const base::Time& comparison_time) {
+// Mozilla doesn't appear to use this, and it's slightly complex to fix,
+// so we will stub it out for 10.4.
+#if(0)
   int file_count = 0;
 
   DIR* dir = opendir(path.value().c_str());
@@ -101,6 +104,10 @@ int CountFilesCreatedAfter(const FilePath& path,
     closedir(dir);
   }
   return file_count;
+#else
+  perror("CountFilesCreatedAfter");
+  return 0;
+#endif
 }
 
 // TODO(erikkay): The Windows version of this accepts paths like "foo/bar/*"
@@ -294,6 +301,9 @@ bool PathExists(const FilePath& path) {
 }
 
 bool PathIsWritable(const FilePath& path) {
+// Mozilla doesn't appear to use this and it is similarly a bit more
+// involved to rewrite.
+#if(0)
   FilePath test_path(path);
   struct stat file_info;
   if (stat(test_path.value().c_str(), &file_info) != 0) {
@@ -311,6 +321,10 @@ bool PathIsWritable(const FilePath& path) {
   if (geteuid() == file_info.st_uid && (S_IWUSR & file_info.st_mode))
     return true;
   return false;
+#else
+  perror("PathIsWritable");
+  return false;
+#endif
 }
 
 bool DirectoryExists(const FilePath& path) {

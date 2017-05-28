@@ -20,6 +20,8 @@ CMMSRCS = \
 	   QuartzSupport.mm \
 	   $(NULL)
 endif
+CMSRCS += CTGradient.m
+CMMSRCS += CTGradientCPP.mm
 
 DEFINES += -DMOZ_GFX -DUSE_CAIRO -DGFX2D_INTERNAL
 
@@ -39,6 +41,11 @@ ifneq (,$(INTEL_ARCHITECTURE))
 ifneq (1400,$(_MSC_VER))
 DEFINES += -DUSE_SSE2
 endif
+endif
+
+# Are we targetting VMX? If so, turn on the awesome.
+ifdef TENFOURFOX_VMX
+DEFINES += -DUSE_VMX
 endif
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),windows)

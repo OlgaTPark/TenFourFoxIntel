@@ -3060,10 +3060,16 @@ gfxFont::ShapeText(gfxContext      *aContext,
                                         aScript, aShapedText);
     }
 
+/* We do not support a PlatformShaper in 10.4Fx. */
+#if(0)
     if (!ok && mHarfBuzzShaper && !aPreferPlatformShaping) {
         if (gfxPlatform::GetPlatform()->UseHarfBuzzForScript(aScript)) {
+#else
+    if (!ok && mHarfBuzzShaper)
+#endif
             ok = mHarfBuzzShaper->ShapeText(aContext, aText, aOffset, aLength,
                                             aScript, aShapedText);
+#if(0)
         }
     }
 
@@ -3077,6 +3083,7 @@ gfxFont::ShapeText(gfxContext      *aContext,
                                             aScript, aShapedText);
         }
     }
+#endif
 
     PostShapingFixup(aContext, aText, aOffset, aLength, aShapedText);
 

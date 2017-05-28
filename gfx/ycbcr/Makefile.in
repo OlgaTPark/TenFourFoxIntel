@@ -32,3 +32,8 @@ yuv_convert_mmx.$(OBJ_SUFFIX): CXXFLAGS += -xarch=mmx -xO4
 yuv_convert_sse2.$(OBJ_SUFFIX): CXXFLAGS += -xarch=sse2 -xO4
 endif
 endif
+
+ifdef TENFOURFOX_VMX
+# already have yuv_row_posix.cpp in CPPSRCS
+CXXFLAGS += -maltivec
+endif

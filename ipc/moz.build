@@ -23,4 +23,5 @@ if CONFIG['MOZ_B2G_RIL'] or CONFIG['MOZ_B2G_BT']:
 if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'gonk':
     DIRS += ['netd']
 
-TOOL_DIRS += ['app']
+# wtf Mozilla wtfffff
+#TOOL_DIRS += ['app']

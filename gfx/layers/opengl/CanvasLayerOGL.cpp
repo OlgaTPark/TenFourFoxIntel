@@ -59,7 +59,8 @@ MakeTextureIfNeeded(GLContext* gl, GLuint& aTexture)
   gl->fTexParameteri(LOCAL_GL_TEXTURE_2D, LOCAL_GL_TEXTURE_WRAP_T, LOCAL_GL_CLAMP_TO_EDGE);
 }
 
-#ifdef XP_MACOSX
+// 10.4 doesn't have IOSurfaces.
+#if 0 // #ifdef XP_MACOSX
 static GLuint
 MakeIOSurfaceTexture(void* aCGIOSurfaceContext, mozilla::gl::GLContext* aGL)
 {
@@ -113,6 +114,8 @@ CanvasLayerOGL::Initialize(const Data& aData)
 
   mOGLManager->MakeCurrent();
 
+// Not supported on 10.4.
+#if(0)
   if (aData.mDrawTarget &&
       aData.mDrawTarget->GetNativeSurface(gfx::NATIVE_SURFACE_CGCONTEXT_ACCELERATED)) {
     mDrawTarget = aData.mDrawTarget;
@@ -120,6 +123,9 @@ CanvasLayerOGL::Initialize(const Data& aData)
     mBounds.SetRect(0, 0, aData.mSize.width, aData.mSize.height);
     return;
   } else if (aData.mDrawTarget) {
+#else
+  if (aData.mDrawTarget) {
+#endif
     mDrawTarget = aData.mDrawTarget;
     mCanvasSurface = gfxPlatform::GetPlatform()->CreateThebesSurfaceAliasForDrawTarget_hack(mDrawTarget);
     mNeedsYFlip = false;
@@ -230,6 +236,7 @@ CanvasLayerOGL::UpdateSurface()
       nothingToShow = true;
     }
   } else if (mCanvasSurface) {
+#if(0) // 10.4 no haz.
 #ifdef XP_MACOSX
     if (mDrawTarget && mDrawTarget->GetNativeSurface(gfx::NATIVE_SURFACE_CGCONTEXT_ACCELERATED)) {
       if (!mTexture) {
@@ -242,6 +249,7 @@ CanvasLayerOGL::UpdateSurface()
       mDrawTarget->Flush();
       return;
     }
+#endif
 #endif
     updatedSurface = mCanvasSurface;
   } else {

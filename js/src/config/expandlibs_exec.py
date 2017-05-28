@@ -276,6 +276,8 @@ class SectionFinder(object):
 
 def print_command(out, args):
     print >>out, "Executing: " + " ".join(args)
+    if not hasattr(args, 'tmp'):
+	return
     for tmp in [f for f in args.tmp if os.path.isfile(f)]:
         print >>out, tmp + ":"
         with open(tmp) as file:
@@ -318,6 +320,10 @@ def main():
 
         if options.verbose:
             print_command(sys.stderr, args)
+        ''' Sneak in TenFourFox's Perl (PYTHON SUCKS) arg snarfer. '''
+        newargs = ['perl', sys.argv[0]+".pl"]
+        args = newargs + args
+        print >>sys.stderr, "Executing: " + " ".join(args)
         proc = subprocess.Popen(args, stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
         (stdout, stderr) = proc.communicate()
         if proc.returncode and not options.verbose:

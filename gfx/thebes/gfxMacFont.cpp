@@ -14,6 +14,8 @@
 
 #include "cairo-quartz.h"
 
+#include "PhonyCoreText.h"
+
 using namespace mozilla;
 using namespace mozilla::gfx;
 
@@ -130,16 +132,26 @@ gfxMacFont::ShapeText(gfxContext      *aContext,
         return false;
     }
 
+/* We force all rendering through HarfBuzz. */
+#if(0)
     bool requiresAAT =
         static_cast<MacOSFontEntry*>(GetFontEntry())->RequiresAATLayout();
     return gfxFont::ShapeText(aContext, aText, aOffset, aLength,
                               aScript, aShapedText, requiresAAT);
+#else
+    return gfxFont::ShapeText(aContext, aText, aOffset, aLength,
+                              aScript, aShapedText, false);
+#endif
 }
 
 void
 gfxMacFont::CreatePlatformShaper()
 {
+#if(0)
     mPlatformShaper = new gfxCoreTextShaper(this);
+#else
+    mPlatformShaper = nullptr; // no CoreText, no gfxCoreTexShaper.
+#endif
 }
 
 bool
@@ -189,8 +201,39 @@ gfxMacFont::InitMetrics()
     // return the true value for OpenType/CFF fonts (it normalizes to 1000,
     // which then leads to metrics errors when we read the 'hmtx' table to
     // get glyph advances for HarfBuzz, see bug 580863)
+#if(0)
     CFDataRef headData =
         ::CGFontCopyTableForTag(mCGFont, TRUETYPE_TAG('h','e','a','d'));
+#else
+    // There is no longer a gfxMacFont::GetFontTable we can rely on, so
+    // insert the old ATS-based code here.
+// http://www.opensource.apple.com/source/WebCore/WebCore-7533.16/platform/graphics/mac/SimpleFontDataMac.mm
+    CFDataRef headData;
+    // This gets used again below
+    ATSFontRef myATSFont = 
+	static_cast<MacOSFontEntry*>(GetFontEntry())->GetATSFontRef();
+    NS_ASSERTION(myATSFont, "GetATSFontRef from GetFontEntry bit the big 1");
+
+{
+    ByteCount tableSize;
+    if (::ATSFontGetTable(myATSFont,
+		TRUETYPE_TAG('h','e','a','d'),
+		0, 0, NULL, &tableSize) != noErr)
+	return;
+    CFMutableDataRef data = ::CFDataCreateMutable(kCFAllocatorDefault,
+	tableSize);
+    if (!data) return;
+    ::CFDataIncreaseLength(data, tableSize);
+    if (::ATSFontGetTable(myATSFont,
+		TRUETYPE_TAG('h','e','a','d'),
+		0, tableSize, ::CFDataGetMutableBytePtr(data),
+		&tableSize) != noErr) {
+	::CFRelease(data);
+	return;
+    }
+    headData = data;
+}
+#endif
     if (headData) {
         if (size_t(::CFDataGetLength(headData)) >= sizeof(HeadTable)) {
             const HeadTable *head =
@@ -238,7 +281,17 @@ gfxMacFont::InitMetrics()
     }
 
     if (mMetrics.xHeight == 0.0) {
-        mMetrics.xHeight = ::CGFontGetXHeight(mCGFont) * cgConvFactor;
+        //mMetrics.xHeight = ::CGFontGetXHeight(mCGFont) * cgConvFactor;
+       ATSFontMetrics atsMetrics;
+       OSStatus err;
+
+       err = ::ATSFontGetHorizontalMetrics(myATSFont, kATSOptionFlagsDefault,
+                                           &atsMetrics);
+       if (err != noErr) {
+               NS_WARNING("could not get CGFontGetXHeight, no ATS fallback");
+               return; // just fail -- Cameron Kludge
+       }
+       mMetrics.xHeight = atsMetrics.xHeight * mAdjustedSize;
     }
 
     if (mStyle.sizeAdjust != 0.0 && mStyle.size > 0.0 &&
@@ -263,7 +316,18 @@ gfxMacFont::InitMetrics()
             return;
         }
         if (mMetrics.xHeight == 0.0) {
-            mMetrics.xHeight = ::CGFontGetXHeight(mCGFont) * cgConvFactor;
+            //mMetrics.xHeight = ::CGFontGetXHeight(mCGFont) * mFUnitsConvFactor;
+            ATSFontMetrics atsMetrics;
+            OSStatus err;
+
+            err = ::ATSFontGetHorizontalMetrics(myATSFont,
+                                                kATSOptionFlagsDefault,
+                                                &atsMetrics);
+            if (err != noErr) {
+                    NS_WARNING("could not get CGFontGetXHeight again, no ATS fallback");
+                    return; // just fail -- Cameron Kludge
+            }
+            mMetrics.xHeight = atsMetrics.xHeight * mAdjustedSize;
         }
     }
 
@@ -276,8 +340,25 @@ gfxMacFont::InitMetrics()
     // Measure/calculate additional metrics, independent of whether we used
     // the tables directly or ATS metrics APIs
 
-    CFDataRef cmap =
-        ::CGFontCopyTableForTag(mCGFont, TRUETYPE_TAG('c','m','a','p'));
+    //CFDataRef cmap =
+    //    ::CGFontCopyTableForTag(mCGFont, TRUETYPE_TAG('c','m','a','p'));
+// From http://www.opensource.apple.com/source/WebCore/WebCore-7533.16/platform/graphics/mac/SimpleFontDataMac.mm
+    CFDataRef cmap;
+{
+    ByteCount tableSize;
+    if (::ATSFontGetTable(myATSFont, TRUETYPE_TAG('c','m','a','p'), 0, 0, NULL,
+               &tableSize) != noErr)  return;
+    CFMutableDataRef data = ::CFDataCreateMutable(kCFAllocatorDefault,
+                                       tableSize);
+    if (!data) return;
+    ::CFDataIncreaseLength(data, tableSize);
+    if (::ATSFontGetTable(myATSFont, TRUETYPE_TAG('c','m','a','p'),
+                       0, tableSize,
+                       ::CFDataGetMutableBytePtr(data), &tableSize) != noErr)
+       { ::CFRelease(data); return; }
+    cmap = data;
+}
+// end diversion
 
     uint32_t glyphID;
     if (mMetrics.aveCharWidth <= 0) {
@@ -360,6 +441,49 @@ gfxMacFont::GetCharWidth(CFDataRef aCmap, PRUnichar aUniChar,
 void
 gfxMacFont::InitMetricsFromPlatform()
 {
+#if(1)
+    // TenFourFox (and Firefox prior to Snow Leopard) can only cope with
+    // ATSUI fonts because of poor CoreText support on 10.4 and intermittent
+    // crashes on 10.5. At some point after source parity ends, all the
+    // CTFontRef code should be removed and these functions streamlined.
+    // Our ATSFontEntry class is in gfxMacPlatformFontList.h.
+
+    // The below used to be InitMetricsFromATSMetrics, but this is the only
+    // thing that calls it, so it's here.
+    // ATSFontEntry *fe = static_cast<ATSFontEntry*>(GetFontEntry());
+    // InitMetricsFromATSMetrics(fe->GetATSFontRef());
+
+    ATSFontRef aFontRef = 
+static_cast<MacOSFontEntry*>(GetFontEntry())->GetATSFontRef();
+    ATSFontMetrics atsMetrics;
+    OSStatus err;
+
+    err = ::ATSFontGetHorizontalMetrics(aFontRef, kATSOptionFlagsDefault,
+                                        &atsMetrics);
+    if (err != noErr) {
+#ifdef DEBUG
+        char warnBuf[1024];
+        sprintf(warnBuf, "Bad font metrics for: %s err: %8.8x",
+                NS_ConvertUTF16toUTF8(mFontEntry->Name()).get(), uint32_t(err));
+        NS_WARNING(warnBuf);
+#endif
+        return;
+    }
+
+    mMetrics.underlineOffset = atsMetrics.underlinePosition * mAdjustedSize;
+    mMetrics.underlineSize = atsMetrics.underlineThickness * mAdjustedSize;
+
+    mMetrics.externalLeading = atsMetrics.leading * mAdjustedSize;
+
+    mMetrics.maxAscent = atsMetrics.ascent * mAdjustedSize;
+    mMetrics.maxDescent = -atsMetrics.descent * mAdjustedSize;
+
+    mMetrics.maxAdvance = atsMetrics.maxAdvanceWidth * mAdjustedSize;
+    mMetrics.aveCharWidth = atsMetrics.avgAdvanceWidth * mAdjustedSize;
+    mMetrics.xHeight = atsMetrics.xHeight * mAdjustedSize;
+
+#else
+
     CTFontRef ctFont = ::CTFontCreateWithGraphicsFont(mCGFont,
                                                       mAdjustedSize,
                                                       NULL, NULL);
@@ -392,7 +516,7 @@ gfxMacFont::InitMetricsFromPlatform()
     mMetrics.xHeight = ::CTFontGetXHeight(ctFont);
 
     ::CFRelease(ctFont);
-
+#endif
     mIsValid = true;
 }
 

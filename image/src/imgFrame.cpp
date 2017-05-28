@@ -249,6 +249,14 @@ nsresult imgFrame::Optimize()
     uint32_t firstPixel = * (uint32_t*) imgData;
     uint32_t pixelCount = mSize.width * mSize.height + 1;
 
+// TenFourFox kludge:
+// If the first pixel is black, then don't optimize (either it is all
+// black, and will hit issue 132, or it isn't, and we don't optimize
+// anyway).
+   if (!(firstPixel & 0x00ffffff)) { // assume ARGB or XRGB
+       return NS_OK;
+   }
+
     while (--pixelCount && *imgData++ == firstPixel)
       ;
 

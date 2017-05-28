@@ -210,8 +210,7 @@ if CONFIG['_MSC_VER']:
         'debug_on_start.cc',
     ]
 
-ost = CONFIG['OS_TEST']
-if ost.find('86') == -1 and ost.find('arm') == -1 and ost.find('mips') == -1:
+if CONFIG['_DONT_USE_INTERNAL_MUTEXES']:
     CPP_SOURCES += [
         'atomicops_internals_mutex.cc',
     ]

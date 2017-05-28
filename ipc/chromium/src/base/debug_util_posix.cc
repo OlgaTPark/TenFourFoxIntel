@@ -155,7 +155,7 @@ StackTrace::StackTrace() {
   const int kMaxCallers = 256;
 
   void* callers[kMaxCallers];
-#if MOZ_HAVE_EXECINFO_H
+#if 0 // 10.4 lacks this. // MOZ_HAVE_EXECINFO_H
   int count = backtrace(callers, kMaxCallers);
 #else
   int count = 0;
@@ -173,9 +173,14 @@ StackTrace::StackTrace() {
 }
 
 void StackTrace::PrintBacktrace() {
+#if(0)
   fflush(stderr);
 #if MOZ_HAVE_EXECINFO_H
   backtrace_symbols_fd(&trace_[0], trace_.size(), STDERR_FILENO);
+#endif
+#else
+  fflush(stderr);
+  fprintf(stderr, "::PrintBacktrace() called (not supported in TenFourFox)\n");
 #endif
 }
 

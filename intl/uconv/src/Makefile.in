@@ -49,3 +49,10 @@ ifdef SOLARIS_SUNPRO_CXX
 nsUTF8ToUnicodeSSE2.$(OBJ_SUFFIX): OS_CXXFLAGS += -xarch=sse2 -xO4
 endif
 endif
+
+ifdef TENFOURFOX_VMX
+ifdef GNU_CC
+nsUTF8ToUnicode.$(OBJ_SUFFIX): CXXFLAGS+=-faltivec
+endif
+endif
+

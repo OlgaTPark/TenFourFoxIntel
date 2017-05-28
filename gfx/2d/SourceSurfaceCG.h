@@ -144,7 +144,9 @@ private:
   void EnsureImage() const;
 
   mutable CGImageRef mImage;
+#if(0)
   MacIOSurface* mIOSurface;
+#endif
 
   void *mData;
   int32_t mStride;

@@ -95,3 +95,8 @@ CPP_SOURCES += [
     'SourceSurfaceRawData.cpp',
 ]
 
+if CONFIG['TENFOURFOX_VMX']:
+    CPP_SOURCES += [
+        'BlurVMX.cpp',
+    ]
+

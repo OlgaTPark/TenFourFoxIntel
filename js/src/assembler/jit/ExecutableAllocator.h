@@ -51,6 +51,10 @@ extern  "C" void sync_instruction_memory(caddr_t v, u_int len);
 #endif
 #endif
 
+#if JS_CPU_PPC_OSX
+extern "C" void sys_icache_invalidate(const void *Addr, size_t len);
+#endif
+
 #if WTF_OS_IOS
 #include <libkern/OSCacheControl.h>
 #include <sys/mman.h>
@@ -229,6 +233,7 @@ public:
         // word sized quantities, then all subsequent allocations will be
         // aligned.
         n = roundUpAllocationSize(n, sizeof(void*));
+	// Aligning this to 32-byte blocks made no difference on G5.
         if (n == OVERSIZE_ALLOCATION) {
             *poolp = NULL;
             return NULL;
@@ -476,6 +481,12 @@ public:
     static void cacheFlush(void* code, size_t size)
     {
         sync_instruction_memory((caddr_t)code, size);
+    }
+#elif JS_CPU_PPC_OSX
+    // This is more efficient on OS X than simply dcbst/sync/icbi/etc.
+    static void cacheFlush(void *code, size_t size)
+    {
+        sys_icache_invalidate(code, size);
     }
 #endif
 

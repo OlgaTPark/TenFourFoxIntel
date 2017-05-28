@@ -13,6 +13,7 @@
 #include "DrawTargetCG.h"
 #include <vector>
 #include <dlfcn.h>
+#include "../thebes/PhonyCoreText.h"
 
 // prototype for private API
 extern "C" {
@@ -29,6 +30,12 @@ bool ScaledFontMac::sSymbolLookupDone = false;
 ScaledFontMac::ScaledFontMac(CGFontRef aFont, Float aSize)
   : ScaledFontBase(aSize)
 {
+// CTFontDrawGlyphs only exists in 10.7 and up. There is no reason for us
+// to look for it knowing it will fail.
+  mFont = CGFontRetain(aFont);
+  mCTFont = nullptr;
+  CTFontDrawGlyphsPtr = nullptr;
+#if(0)
   if (!sSymbolLookupDone) {
     CTFontDrawGlyphsPtr =
       (CTFontDrawGlyphsFuncT*)dlsym(RTLD_DEFAULT, "CTFontDrawGlyphs");
@@ -43,6 +50,7 @@ ScaledFontMac::ScaledFontMac(CGFontRef aFont, Float aSize)
   } else {
     mCTFont = nullptr;
   }
+#endif
 }
 
 ScaledFontMac::~ScaledFontMac()

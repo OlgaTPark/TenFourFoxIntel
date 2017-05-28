@@ -4,7 +4,8 @@
 
 #include "base/hmac.h"
 
-#include <CommonCrypto/CommonHMAC.h>
+//#include <CommonCrypto/CommonHMAC.h>
+#include "CommonHMAC.h"
 
 #include "base/logging.h"
 

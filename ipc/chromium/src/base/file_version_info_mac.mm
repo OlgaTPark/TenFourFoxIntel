@@ -28,9 +28,19 @@ FileVersionInfo* FileVersionInfo::CreateFileVersionInfoForCurrentModule() {
 // static
 FileVersionInfo* FileVersionInfo::CreateFileVersionInfo(
     const std::wstring& file_path) {
+#if(0)
   NSString* path = [NSString stringWithCString:
       reinterpret_cast<const char*>(file_path.c_str())
         encoding:NSUTF32StringEncoding];
+#else
+  // There is no NSUTF32StringEncoding for 10.4, so we use CFStrings
+  // and toll-free bridge the CFStringRef to an NSString.
+  NSString *path = (NSString *)CFStringCreateWithBytes(kCFAllocatorDefault,
+	reinterpret_cast<const UInt8 *>(file_path.c_str()),
+	(file_path.length() * sizeof(wchar_t)),
+	kCFStringEncodingUTF32,
+	false);
+#endif
   return new FileVersionInfo([NSBundle bundleWithPath:path]);
 }
 
@@ -115,8 +125,40 @@ bool FileVersionInfo::GetValue(const wchar_t* name, std::wstring* value_str) {
     NSString* value = [bundle_ objectForInfoDictionaryKey:
         [NSString stringWithUTF8String:WideToUTF8(name).c_str()]];
     if (value) {
+#if(0)
       *value_str = reinterpret_cast<const wchar_t*>(
           [value cStringUsingEncoding:NSUTF32StringEncoding]);
+#else
+      // There is no NSUTF32StringEncoding in 10.4, so we use CFStrings to
+      // get at the NSString via toll-free bridging, convert it, and return
+      // that. Broadly adapted from sys_string_conversions_mac.mm.
+	CFStringRef cfstring = (CFStringRef)value;
+	CFIndex length = CFStringGetLength(cfstring);
+	CFIndex out_size;
+
+	if (!length) return false;
+	CFRange whole_string = CFRangeMake(0, length);
+	// Figure out how much space we will need for the converted string.
+	CFIndex converted = CFStringGetBytes(cfstring,
+		whole_string,
+		kCFStringEncodingUTF32,
+		0, false, NULL, 0, &out_size);
+	if (!converted || !out_size) return false;
+	// Create a vector large enough to hold it, with space for NULL.
+	int elements = out_size * sizeof(UInt8) * sizeof(wchar_t) + 1;
+	std::vector<std::wstring::value_type> out_buffer(elements);
+	converted = CFStringGetBytes(cfstring,
+		whole_string,
+		kCFStringEncodingUTF32,
+		0, false, reinterpret_cast<UInt8 *>(&out_buffer[0]),
+		out_size, NULL);
+	if (!converted) return false;
+	out_buffer[elements - 1] = '\0';
+// This needs work.
+//	value_str = reinterpret_cast<std::wstring *>(&out_buffer[0]);
+	perror("GetValue needs work");
+	return false;
+#endif
       return true;
     }
   }

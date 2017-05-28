@@ -31,7 +31,9 @@ static inline id CFTypeRefToNSObjectAutorelease(CFTypeRef cf_object) {
   // and cf_object is autoreleased, balancing out the caller's ownership claim.
   //
   // NSMakeCollectable returns nil when used on a NULL object.
-  return [NSMakeCollectable(cf_object) autorelease];
+  //return [NSMakeCollectable(cf_object) autorelease];
+  // This is the 10.4 equivalent.
+  return [(id)CFMakeCollectable(cf_object) autorelease];
 }
 
 #endif  // BASE_FOUNDATION_UTILS_MAC_H_

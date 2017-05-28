@@ -1,3 +1,5 @@
+// 10.4 doesn't support any of this.
+#if(0)
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 // vim:set ts=2 sts=2 sw=2 et cin:
 /* This Source Code Form is subject to the terms of the Mozilla Public
@@ -1113,3 +1115,4 @@ CGContextType GetContextType(CGContextRef ref)
 }
 
 
+#endif

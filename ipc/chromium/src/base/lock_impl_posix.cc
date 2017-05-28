@@ -8,8 +8,17 @@
 
 #include "base/logging.h"
 
+// Debugging the lock doesn't work in 10.4 for some reason, so we need
+// to disable it in debug builds.
+#ifdef DEBUG
+#define DCHECK(x) { if (!(x)) fprintf(stderr, "Warning: DCHECK failed\n"); }
+#else
+#define DCHECK(x) { }
+#endif
+#define DCHECK_EQ(x, y)  DCHECK(x == y)
+
 LockImpl::LockImpl() {
-#ifndef NDEBUG
+#if 0 // ndef NDEBUG
   // In debug, setup attributes for lock error checking.
   pthread_mutexattr_t mta;
   int rv = pthread_mutexattr_init(&mta);

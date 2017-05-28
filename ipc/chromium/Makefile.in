@@ -21,11 +21,16 @@ ACDEFINES =
 ifndef MOZ_NATIVE_LIBEVENT # {
 vpath %.c \
   $(srcdir)/src/third_party/libevent \
+  $(srcdir)/src/base \
   $(NULL)
 else # } else {
 # message_pump_libevent.cc includes third_party/libevent/event.h,
 # which we put in $(DIST), see export rule below
 LOCAL_INCLUDES += -I$(DIST)
+# for CommonHMAC.c
+vpath %.c \
+  $(srcdir)/src/base \
+  $(NULL)
 endif # }
 
 vpath %.cc \
@@ -104,6 +109,7 @@ CSRCS += \
 ifdef OS_MACOSX # {
 LOCAL_INCLUDES += -I$(srcdir)/src/third_party/libevent/mac
 CSRCS += kqueue.c
+CSRCS += CommonHMAC.c
 endif # }
 
 ifdef OS_LINUX # {

@@ -131,7 +131,10 @@ quartz_font_ensure_symbols(void)
     CGContextGetAllowsFontSmoothingPtr = dlsym(RTLD_DEFAULT, "CGContextGetAllowsFontSmoothing");
     CGContextSetAllowsFontSmoothingPtr = dlsym(RTLD_DEFAULT, "CGContextSetAllowsFontSmoothing");
 
+#if(0)
     CTFontCreateWithGraphicsFontPtr = dlsym(RTLD_DEFAULT, "CTFontCreateWithGraphicsFont");
+// This doesn't work right in 10.4, even though the symbol exists.
+#endif
 
     if ((CGFontCreateWithFontNamePtr || CGFontCreateWithNamePtr) &&
 	CGFontGetGlyphBBoxesPtr &&
