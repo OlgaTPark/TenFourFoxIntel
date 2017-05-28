@@ -33,6 +33,14 @@
 
 #if ENABLE_YARR_JIT
 
+#if WTF_CPU_PPC
+#if JS_CPU_PPC_OSX
+// nothing, carry on
+#else
+#error You need to modify YarrJIT.cpp for your PPC ABI (a la JS_CPU_PPC_OSX).
+#endif
+#endif
+
 using namespace WTF;
 
 namespace JSC { namespace Yarr {
@@ -63,6 +71,17 @@ class YarrGenerator : private MacroAssembler {
 
     static const RegisterID returnRegister = MIPSRegisters::v0;
     static const RegisterID returnRegister2 = MIPSRegisters::v1;
+#elif JS_CPU_PPC_OSX
+    static const RegisterID input = PPCRegisters::r3;
+    static const RegisterID index = PPCRegisters::r4;
+    static const RegisterID length = PPCRegisters::r5;
+    static const RegisterID output = PPCRegisters::r6;
+    
+    static const RegisterID regT0 = PPCRegisters::r7;
+    static const RegisterID regT1 = PPCRegisters::r8;
+    
+    static const RegisterID returnRegister = PPCRegisters::r3;
+    static const RegisterID returnRegister2 = PPCRegisters::r4;
 #elif WTF_CPU_SH4
     static const RegisterID input = SH4Registers::r4;
     static const RegisterID index = SH4Registers::r5;
@@ -309,27 +328,52 @@ class YarrGenerator : private MacroAssembler {
 
     void storeToFrame(RegisterID reg, unsigned frameLocation)
     {
+#if JS_CPU_PPC_OSX
+        // We must steer clear of the linkage area.
+        poke(reg, 7+frameLocation);
+#else
         poke(reg, frameLocation);
+#endif
     }
 
     void storeToFrame(TrustedImm32 imm, unsigned frameLocation)
     {
+#if JS_CPU_PPC_OSX
+        // We must steer clear of the linkage area.
+        poke(imm, 7+frameLocation);
+#else
         poke(imm, frameLocation);
+#endif
     }
 
     DataLabelPtr storeToFrameWithPatch(unsigned frameLocation)
     {
+#if JS_CPU_PPC_OSX
+        // Damn it, we must steer clear of the linkage area!
+        return storePtrWithPatch(TrustedImmPtr(0), Address(stackPointerRegister, 28+(frameLocation * sizeof(void*))));
+#else
         return storePtrWithPatch(TrustedImmPtr(0), Address(stackPointerRegister, frameLocation * sizeof(void*)));
+#endif
     }
 
     void loadFromFrame(unsigned frameLocation, RegisterID reg)
     {
+#if JS_CPU_PPC_OSX
+        // I mean it! Steer clear of the linkage area!
+        peek(reg, 7+frameLocation);
+#else
         peek(reg, frameLocation);
+#endif
     }
 
     void loadFromFrameAndJump(unsigned frameLocation)
     {
+#if JS_CPU_PPC_OSX
+        // Why won't you steer clear of the linkage area?
+        jump(Address(stackPointerRegister, 28+(frameLocation * sizeof(void*))));
+#else
         jump(Address(stackPointerRegister, frameLocation * sizeof(void*)));
+#endif
     }
 
     void initCallFrame()
@@ -1552,7 +1596,12 @@ class YarrGenerator : private MacroAssembler {
                 if (term->quantityType != QuantifierFixedCount && !m_ops[op.m_previousOp].m_alternative->m_minimumSize) {
                     // If the previous alternative matched without consuming characters then
                     // backtrack to try to match while consumming some input.
+#if JS_CPU_PPC_OSX
+                    // And stay the hell out of the PPC linkage area!
+                    op.m_zeroLengthMatch = branch32(Equal, index, Address(stackPointerRegister, 28+(term->frameLocation * sizeof(void*))));
+#else
                     op.m_zeroLengthMatch = branch32(Equal, index, Address(stackPointerRegister, term->frameLocation * sizeof(void*)));
+#endif
                 }
 
                 // If we reach here then the last alternative has matched - jump to the
@@ -1602,7 +1651,13 @@ class YarrGenerator : private MacroAssembler {
                 if (term->quantityType != QuantifierFixedCount && !m_ops[op.m_previousOp].m_alternative->m_minimumSize) {
                     // If the previous alternative matched without consuming characters then
                     // backtrack to try to match while consumming some input.
+#if JS_CPU_PPC_OSX
+                    // That's a nice linkage area you've got there, son.
+                    // Be a real shame if someone crapped on it.
+                    op.m_zeroLengthMatch = branch32(Equal, index, Address(stackPointerRegister, 28+(term->frameLocation * sizeof(void*))));
+#else
                     op.m_zeroLengthMatch = branch32(Equal, index, Address(stackPointerRegister, term->frameLocation * sizeof(void*)));
+#endif
                 }
 
                 // If this set of alternatives contains more than one alternative,
@@ -1678,7 +1733,12 @@ class YarrGenerator : private MacroAssembler {
                 // "no input consumed" check.
                 if (term->quantityType != QuantifierFixedCount && !term->parentheses.disjunction->m_minimumSize) {
                     Jump pastBreakpoint;
+#if JS_CPU_PPC_OSX
+                    // This linkage area will kick your ass. Take care of it.
+                    pastBreakpoint = branch32(NotEqual, index, Address(stackPointerRegister, 28+(term->frameLocation * sizeof(void*))));
+#else
                     pastBreakpoint = branch32(NotEqual, index, Address(stackPointerRegister, term->frameLocation * sizeof(void*)));
+#endif
                     breakpoint();
                     pastBreakpoint.link(this);
                 }
@@ -1735,7 +1795,12 @@ class YarrGenerator : private MacroAssembler {
                 // Runtime ASSERT to make sure that the nested alternative handled the
                 // "no input consumed" check.
                 Jump pastBreakpoint;
+#if JS_CPU_PPC_OSX
+                // Oh, I love it when you touch my linkage area like that.
+                pastBreakpoint = branch32(NotEqual, index, Address(stackPointerRegister, 28+(term->frameLocation * sizeof(void*))));
+#else
                 pastBreakpoint = branch32(NotEqual, index, Address(stackPointerRegister, term->frameLocation * sizeof(void*)));
+#endif
                 breakpoint();
                 pastBreakpoint.link(this);
 #endif
@@ -2244,7 +2309,12 @@ class YarrGenerator : private MacroAssembler {
                     // are currently in a state where we had skipped over the subpattern
                     // (in which case the flag value on the stack will be -1).
                     unsigned parenthesesFrameLocation = term->frameLocation;
+#if JS_CPU_PPC_OSX
+                    // Touch my linkage area there again and I'll cut it off.
+                    Jump hadSkipped = branch32(Equal, Address(stackPointerRegister, 28+(parenthesesFrameLocation * sizeof(void*))), TrustedImm32(-1));
+#else
                     Jump hadSkipped = branch32(Equal, Address(stackPointerRegister, parenthesesFrameLocation * sizeof(void*)), TrustedImm32(-1));
+#endif
 
                     if (term->quantityType == QuantifierGreedy) {
                         // For Greedy parentheses, we skip after having already tried going
@@ -2642,6 +2712,10 @@ class YarrGenerator : private MacroAssembler {
 # endif
         if (compileMode == IncludeSubpatterns)
             move(ARMRegisters::r3, output);
+#elif JS_CPU_PPC_OSX
+        // Construct a totally bogus stack frame.
+        // This is just a magical constant to ensure "sufficient room."
+        genPrologue(32 + m_pattern.m_body->m_callFrameSize * sizeof(void*));
 #elif WTF_CPU_SH4
         push(SH4Registers::r11);
         push(SH4Registers::r13);
@@ -2669,6 +2743,9 @@ class YarrGenerator : private MacroAssembler {
         pop(ARMRegisters::r6);
         pop(ARMRegisters::r5);
         pop(ARMRegisters::r4);
+#elif JS_CPU_PPC_OSX
+        // Deconstruct the totally bogus stack frame.
+        genEpilogue(32 + m_pattern.m_body->m_callFrameSize * sizeof(void*));
 #elif WTF_CPU_SH4
         pop(SH4Registers::r13);
         pop(SH4Registers::r11);

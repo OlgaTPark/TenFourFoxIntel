@@ -3114,10 +3114,19 @@ XPCJSRuntime::XPCJSRuntime(nsXPConnect* aXPConnect)
     // underlying platform makes available, but that seems to be what we do. :-(
 
 #if defined(XP_MACOSX) || defined(DARWIN)
+#ifdef __ppc__
+    // TenFourFox has over 1GB of stack to play with, necessary due to PPC
+    // stack redzones and much larger prologues. Our previous version
+    // used 32MB here. Advance to 64, and use 32 for trusted, so the number
+    // comes out similar.
+    const size_t kStackQuota = 65536 * 1024;
+    const size_t kTrustedScriptBuffer = 32768 * 1024;
+#else
     // MacOS has a gargantuan default stack size of 8MB. Go wild with 7MB,
     // and give trusted script 140k extra. The stack is huge on mac anyway.
     const size_t kStackQuota = 7 * 1024 * 1024;
     const size_t kTrustedScriptBuffer = 140 * 1024;
+#endif
 #elif defined(MOZ_ASAN)
     // ASan requires more stack space due to red-zones, so give it double the
     // default (2MB on 32-bit, 4MB on 64-bit). ASAN stack frame measurements

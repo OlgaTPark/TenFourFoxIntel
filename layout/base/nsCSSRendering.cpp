@@ -1952,6 +1952,86 @@ FindTileStart(nscoord aDirtyCoord, nscoord aTilePos, nscoord aTileDim)
   return NSToCoordRound(multiples*aTileDim + aTilePos);
 }
 
+static gfxFloat
+LinearGradientStopPositionForPoint(const gfxPoint& aGradientStart,
+                                   const gfxPoint& aGradientEnd,
+                                   const gfxPoint& aPoint)
+{
+  gfxPoint d = aGradientEnd - aGradientStart;
+  gfxPoint p = aPoint - aGradientStart;
+  /**
+   * Compute a parameter t such that a line perpendicular to the
+   * d vector, passing through aGradientStart + d*t, also
+   * passes through aPoint.
+   *
+   * t is given by
+   *   (p.x - d.x*t)*d.x + (p.y - d.y*t)*d.y = 0
+   *
+   * Solving for t we get
+   *   numerator = d.x*p.x + d.y*p.y
+   *   denominator = d.x^2 + d.y^2
+   *   t = numerator/denominator
+   *
+   * In nsCSSRendering::PaintGradient we know the length of d
+   * is not zero.
+   */
+  double numerator = d.x * p.x + d.y * p.y;
+  double denominator = d.x * d.x + d.y * d.y;
+  return numerator / denominator;
+}
+
+static bool
+RectIsBeyondLinearGradientEdge(const gfxRect& aRect,
+                               const gfxMatrix& aPatternMatrix,
+                               const nsTArray<ColorStop>& aStops,
+                               const gfxPoint& aGradientStart,
+                               const gfxPoint& aGradientEnd,
+                               gfxRGBA* aOutEdgeColor)
+{
+  gfxFloat topLeft = LinearGradientStopPositionForPoint(
+    aGradientStart, aGradientEnd, aPatternMatrix.Transform(aRect.TopLeft()));
+  gfxFloat topRight = LinearGradientStopPositionForPoint(
+    aGradientStart, aGradientEnd, aPatternMatrix.Transform(aRect.TopRight()));
+  gfxFloat bottomLeft = LinearGradientStopPositionForPoint(
+    aGradientStart, aGradientEnd, aPatternMatrix.Transform(aRect.BottomLeft()));
+  gfxFloat bottomRight = LinearGradientStopPositionForPoint(
+    aGradientStart, aGradientEnd, aPatternMatrix.Transform(aRect.BottomRight()));
+
+  const ColorStop& firstStop = aStops[0];
+  if (topLeft < firstStop.mPosition && topRight < firstStop.mPosition &&
+      bottomLeft < firstStop.mPosition && bottomRight < firstStop.mPosition) {
+    *aOutEdgeColor = firstStop.mColor;
+    return true;
+  }
+
+  const ColorStop& lastStop = aStops.LastElement();
+  if (topLeft >= lastStop.mPosition && topRight >= lastStop.mPosition &&
+      bottomLeft >= lastStop.mPosition && bottomRight >= lastStop.mPosition) {
+    *aOutEdgeColor = lastStop.mColor;
+    return true;
+  }
+
+  return false;
+}
+
+static void
+WorkAroundPixmanPrecision(gfxPoint* aLineStart, gfxPoint* aLineEnd,
+                          double* aRadiusX, double* aRadiusY,
+                          gfxMatrix* aPatternMatrix)
+{
+  // Pixman fails to render gradients with huge lineStart or lineEnd values
+  // because it uses fixed precision values internally. Shifting some of the
+  // magnitude from the gradient line points into the pattern matrix allows
+  // more gradients to render.
+  double scale = 1.0 / (1 << 8);
+  *aLineStart = *aLineStart * scale;
+  *aLineEnd = *aLineEnd * scale;
+  *aRadiusX *= scale;
+  *aRadiusY *= scale;
+  //*aPatternMatrix = gfxMatrix::Scaling(scale, scale);
+  *aPatternMatrix = gfxMatrix(scale, 0.0, 0.0, scale, 0.0, 0.0);
+}
+
 void
 nsCSSRendering::PaintGradient(nsPresContext* aPresContext,
                               nsRenderingContext& aRenderingContext,
@@ -2154,15 +2234,21 @@ nsCSSRendering::PaintGradient(nsPresContext* aPresContext,
   }
   stopScale = 1.0/(stopEnd - stopOrigin);
 
+  gfxMatrix matrix;
+#if(0)
+  WorkAroundPixmanPrecision(&lineStart, &lineEnd, &radiusX, &radiusY, &matrix);
+#endif
+
   // Create the gradient pattern.
   nsRefPtr<gfxPattern> gradientPattern;
   bool forceRepeatToCoverTiles = false;
-  gfxMatrix matrix;
+  gfxPoint gradientStart;
+  gfxPoint gradientEnd;
   if (aGradient->mShape == NS_STYLE_GRADIENT_SHAPE_LINEAR) {
     // Compute the actual gradient line ends we need to pass to cairo after
     // stops have been normalized.
-    gfxPoint gradientStart = lineStart + (lineEnd - lineStart)*stopOrigin;
-    gfxPoint gradientEnd = lineStart + (lineEnd - lineStart)*stopEnd;
+    gradientStart = lineStart + (lineEnd - lineStart)*stopOrigin;
+    gradientEnd = lineStart + (lineEnd - lineStart)*stopEnd;
     gfxPoint gradientStopStart = lineStart + (lineEnd - lineStart)*firstStop;
     gfxPoint gradientStopEnd = lineStart + (lineEnd - lineStart)*lastStop;
 
@@ -2211,9 +2297,18 @@ nsCSSRendering::PaintGradient(nsPresContext* aPresContext,
       // Recall that this is the transform from user space to pattern space.
       // So to stretch the ellipse by factor of P vertically, we scale
       // user coordinates by 1/P.
+#if(0)
+      // first cut bug 1011166
+      gfxMatrix stretch;
+      stretch.Translate(lineStart);
+      stretch.Scale(1.0, radiusX/radiusY);
+      stretch.Translate(-lineStart);
+      matrix *= stretch;
+#else
       matrix.Translate(lineStart);
       matrix.Scale(1.0, radiusX/radiusY);
       matrix.Translate(-lineStart);
+#endif
     }
   }
   // Use a pattern transform to take account of source and dest rects
@@ -2284,6 +2379,9 @@ nsCSSRendering::PaintGradient(nsPresContext* aPresContext,
 
   gfxRect areaToFill =
     nsLayoutUtils::RectToGfxRect(aFillArea, appUnitsPerDevPixel);
+  gfxRect dirtyAreaToFill = nsLayoutUtils::RectToGfxRect(dirty, appUnitsPerDevPixel);
+  dirtyAreaToFill.RoundOut();
+
   gfxMatrix ctm = ctx->CurrentMatrix();
   bool isCTMPreservingAxisAlignedRectangles = ctm.PreservesAxisAlignedRectangles();
 
@@ -2331,8 +2429,18 @@ nsCSSRendering::PaintGradient(nsPresContext* aPresContext,
       }
       ctx->NewPath();
       ctx->Rectangle(fillRect);
-      ctx->Translate(tileRect.TopLeft());
-      ctx->SetPattern(gradientPattern);
+
+      gfxRect dirtyFillRect = fillRect.Intersect(dirtyAreaToFill);
+      gfxRect fillRectRelativeToTile = dirtyFillRect - tileRect.TopLeft();
+      gfxRGBA edgeColor;
+      if (aGradient->mShape == NS_STYLE_GRADIENT_SHAPE_LINEAR && !isRepeat &&
+          RectIsBeyondLinearGradientEdge(fillRectRelativeToTile, matrix, stops,
+                                         gradientStart, gradientEnd, &edgeColor)) {
+        ctx->SetColor(edgeColor);
+      } else {
+        ctx->Translate(tileRect.TopLeft());
+        ctx->SetPattern(gradientPattern);
+      }
       ctx->Fill();
       ctx->SetMatrix(ctm);
     }

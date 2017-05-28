@@ -210,7 +210,7 @@ public:
                                     MutableHandle<JSPropertyDescriptor> desc) MOZ_OVERRIDE;
     static bool defineProperty(JSContext* cx, HandleObject wrapper, HandleId id,
                                MutableHandle<JSPropertyDescriptor> desc,
-                               Handle<JSPropertyDescriptor> existingDesc, bool* defined);
+                               JS::Handle<JSPropertyDescriptor> existingDesc, bool* defined);
     virtual bool enumerateNames(JSContext* cx, HandleObject wrapper, unsigned flags,
                                 AutoIdVector& props);
     static bool call(JSContext* cx, HandleObject wrapper,
@@ -261,7 +261,7 @@ public:
                                     MutableHandle<JSPropertyDescriptor> desc) MOZ_OVERRIDE;
     static bool defineProperty(JSContext* cx, HandleObject wrapper, HandleId id,
                                MutableHandle<JSPropertyDescriptor> desc,
-                               Handle<JSPropertyDescriptor> existingDesc, bool* defined);
+                               JS::Handle<JSPropertyDescriptor> existingDesc, bool* defined);
     static bool set(JSContext* cx, HandleObject wrapper, HandleObject receiver, HandleId id,
                     bool strict, MutableHandleValue vp);
     virtual bool enumerateNames(JSContext* cx, HandleObject wrapper, unsigned flags,
@@ -306,7 +306,7 @@ public:
 
     static bool defineProperty(JSContext* cx, HandleObject wrapper, HandleId id,
                                MutableHandle<JSPropertyDescriptor> desc,
-                               Handle<JSPropertyDescriptor> existingDesc, bool* defined)
+                               JS::Handle<JSPropertyDescriptor> existingDesc, bool* defined)
     {
         // There's no useful per-trait work to do here. Punt back up to the common code.
         *defined = false;
@@ -1281,7 +1281,7 @@ XPCWrappedNativeXrayTraits::resolveOwnProperty(JSContext* cx, Wrapper& jsWrapper
 bool
 XPCWrappedNativeXrayTraits::defineProperty(JSContext* cx, HandleObject wrapper, HandleId id,
                                            MutableHandle<JSPropertyDescriptor> desc,
-                                           Handle<JSPropertyDescriptor> existingDesc, bool* defined)
+                                           JS::Handle<JSPropertyDescriptor> existingDesc, bool* defined)
 {
     *defined = false;
     JSObject* holder = singleton.ensureHolder(cx, wrapper);
@@ -1460,7 +1460,7 @@ DOMXrayTraits::resolveOwnProperty(JSContext* cx, Wrapper& jsWrapper, HandleObjec
 bool
 DOMXrayTraits::defineProperty(JSContext* cx, HandleObject wrapper, HandleId id,
                               MutableHandle<JSPropertyDescriptor> desc,
-                              Handle<JSPropertyDescriptor> existingDesc, bool* defined)
+                              JS::Handle<JSPropertyDescriptor> existingDesc, bool* defined)
 {
     // Check for an indexed property on a Window.  If that's happening, do
     // nothing but claim we defined it so it won't get added as an expando.

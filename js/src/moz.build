@@ -347,6 +347,20 @@ if CONFIG['ENABLE_ION']:
             UNIFIED_SOURCES += [
                 'jit/arm/Simulator-arm.cpp'
             ]
+    elif CONFIG['JS_CODEGEN_PPC_OSX']:
+    	SOURCES += [
+            'jit/ppcosx/Architecture-ppc.cpp',
+            'jit/ppcosx/Assembler-ppc.cpp',
+            'jit/ppcosx/Bailouts-ppc.cpp',
+            'jit/ppcosx/BaselineCompiler-ppc.cpp',
+            'jit/ppcosx/BaselineIC-ppc.cpp',
+            'jit/ppcosx/CodeGenerator-ppc.cpp',
+            'jit/ppcosx/IonFrames-ppc.cpp',
+            'jit/ppcosx/Lowering-ppc.cpp',
+            'jit/ppcosx/MacroAssembler-ppc.cpp',
+            'jit/ppcosx/MoveEmitter-ppc.cpp',
+            'jit/ppcosx/Trampoline-ppc.cpp',
+	]
 
 if CONFIG['OS_ARCH'] == 'WINNT':
     SOURCES += [
@@ -371,6 +385,10 @@ if CONFIG['ENABLE_ION'] or CONFIG['ENABLE_YARR_JIT']:
             'assembler/assembler/ARMAssembler.cpp',
             'assembler/assembler/MacroAssemblerARM.cpp',
         ]
+    elif CONFIG['JS_CODEGEN_PPC_OSX']:
+    	SOURCES += [
+    	    'assembler/assembler/PPCAssembler.cpp',
+    	]
 
 if CONFIG['ENABLE_YARR_JIT']:
     SOURCES += [

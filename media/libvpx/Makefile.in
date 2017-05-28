@@ -2,6 +2,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+# Alter the build settings here for VMX if enabled so that they propagate.
+ifdef VPX_VMX_ASM
+# For PPC, use the Tiger dumb-as.
+VPX_AS=gcc
+VPX_ASFLAGS=-force_cpusubtype_ALL
+VPX_DASH_C_FLAG=-c
+VPX_ASM_SUFFIX=s
+endif
+
 #Setup the libvpx assembler config.
 AS=$(VPX_AS)
 ASFLAGS=$(VPX_ASFLAGS) -I. -I$(topsrcdir)/media/libvpx/ -I$(topsrcdir)/media/libvpx/vpx_ports/
