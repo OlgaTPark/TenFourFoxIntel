@@ -1,3 +1,4 @@
+#if(0)
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 // vim:set ts=2 sts=2 sw=2 et cin:
 // Copyright (c) 2006-2008 The Chromium Authors. All rights reserved.
@@ -1156,3 +1157,4 @@ mac_plugin_interposing_child_OnShowCursor()
 {
   return OnUnhideCursor();
 }
+#endif

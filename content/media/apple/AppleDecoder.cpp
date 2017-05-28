@@ -23,8 +23,13 @@ AppleDecoder::Clone()
 MediaDecoderStateMachine *
 AppleDecoder::CreateStateMachine()
 {
+#if(0)
   // TODO MP4
   return new MediaDecoderStateMachine(this, new AppleMP3Reader(this));
+#else
+  NS_WARNING("MP3 not supported yet in TenFourFox");
+  return nullptr;
+#endif
 }
 
 } // namespace mozilla

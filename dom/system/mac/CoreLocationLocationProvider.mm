@@ -1,3 +1,4 @@
+#if(0)
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* vim:set ts=2 sw=2 sts=2 et cindent: */
 /* This Source Code Form is subject to the terms of the Mozilla Public
@@ -194,3 +195,4 @@ CoreLocationLocationProvider::NotifyError(uint16_t aErrorCode)
 {
   mCallback->NotifyError(aErrorCode);
 }
+#endif

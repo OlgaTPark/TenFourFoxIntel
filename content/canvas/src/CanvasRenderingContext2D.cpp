@@ -1079,6 +1079,7 @@ void
 CanvasRenderingContext2D::GetImageBuffer(uint8_t** aImageBuffer,
                                          int32_t* aFormat)
 {
+#if(0)
   *aImageBuffer = nullptr;
   *aFormat = 0;
 
@@ -1095,6 +1096,47 @@ CanvasRenderingContext2D::GetImageBuffer(uint8_t** aImageBuffer,
 
   *aImageBuffer = SurfaceToPackedBGRA(data);
   *aFormat = imgIEncoder::INPUT_FORMAT_HOSTARGB;
+#else
+// Temporarily backout bug 933030
+  *aImageBuffer = nullptr;
+  *aFormat = 0;
+
+  /* nsresult rv = GetThebesSurface(getter_AddRefs(surface)); */
+  EnsureTarget();
+  if (!IsTargetValid()) return;
+  nsRefPtr<gfxASurface> surface =
+      gfxPlatform::GetPlatform()->GetThebesSurfaceForDrawTarget(mTarget);
+  if (!surface) return;
+  /* NS_ADDREF(surface); */
+
+  static const fallible_t fallible = fallible_t();
+  uint8_t* imageBuffer = new (fallible) uint8_t[mWidth * mHeight * 4];
+  if (!imageBuffer) return;
+
+  nsRefPtr<gfxImageSurface> imgsurf =
+    new gfxImageSurface(imageBuffer,
+                        gfxIntSize(mWidth, mHeight),
+                        mWidth * 4,
+			gfxImageFormat::ARGB32);
+
+  if (!imgsurf || imgsurf->CairoStatus()) {
+    delete[] imageBuffer;
+    return;
+  }
+
+  nsRefPtr<gfxContext> ctx = new gfxContext(imgsurf);
+  if (!ctx || ctx->HasError()) {
+    delete[] imageBuffer;
+    return;
+  }
+
+  ctx->SetOperator(gfxContext::OPERATOR_SOURCE);
+  ctx->SetSource(surface, gfxPoint(0, 0));
+  ctx->Paint();
+
+  *aImageBuffer = imageBuffer;
+  *aFormat = imgIEncoder::INPUT_FORMAT_HOSTARGB;
+#endif
 }
 
 NS_IMETHODIMP

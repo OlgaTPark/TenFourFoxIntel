@@ -40,7 +40,10 @@
 
 #main-window {
   -moz-appearance: none;
-  background-color: #eeeeee;
+  background-color: -moz-mac-chrome-active;
+}
+#main-window:-moz-window-inactive {
+  background-color: -moz-mac-chrome-inactive;
 }
 
 /** Begin titlebar **/
@@ -2825,6 +2828,8 @@ toolbarbutton.chevron > .toolbarbutton-menu-dropmarker {
   visibility: hidden;
 }
 
+/* If we don't do this here too, then Tiger just draws a weird grey line. */
+#TabsToolbar::after,
 #main-window:-moz-any([sizemode="fullscreen"],[customize-entered]) #TabsToolbar::after,
 #main-window:not([tabsintitlebar]) #TabsToolbar::after,
 #TabsToolbar:-moz-lwtheme::after {

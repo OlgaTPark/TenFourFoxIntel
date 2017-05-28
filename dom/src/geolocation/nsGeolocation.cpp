@@ -693,10 +693,12 @@ nsresult nsGeolocationService::Init()
   mProvider = do_GetService(GONK_GPS_GEOLOCATION_PROVIDER_CONTRACTID);
 #endif
 
+#if(0) // 10.4 and 10.5 no haz.
 #ifdef MOZ_WIDGET_COCOA
   if (Preferences::GetBool("geo.provider.use_corelocation", false)) {
     mProvider = new CoreLocationLocationProvider();
   }
+#endif
 #endif
 
   if (Preferences::GetBool("geo.provider.use_mls", false)) {

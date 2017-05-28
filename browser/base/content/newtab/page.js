@@ -48,6 +48,7 @@ let gPage = {
    * thumbnail service.
    */
   get allowBackgroundCaptures() {
+return false; // not yet supported
     // The preloader is bypassed altogether for private browsing windows, and
     // therefore allow-background-captures will not be set.  In that case, the
     // page is not preloaded and so it's visible, so allow background captures.

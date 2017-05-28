@@ -18,7 +18,9 @@
 #define statvfs statfs
 #else
 #include "sys/statvfs.h"
+#if(0) // 10.4 doesn't have spawn().
 #include <spawn.h>
+#endif
 #endif // defined(ANDROID)
 #endif // defined(XP_UNIX)
 
@@ -26,9 +28,12 @@
 #include <linux/fadvise.h>
 #endif // defined(XP_LINUX)
 
+// 10.4 doesn't have this.
+#if(0)
 #if defined(XP_MACOSX)
 #include "copyfile.h"
 #endif // defined(XP_MACOSX)
+#endif
 
 #if defined(XP_WIN)
 #include <windows.h>
@@ -564,10 +569,13 @@ static const dom::ConstantSpec gLibcProperties[] =
   // The size of |fsblkcnt_t|.
   { "OSFILE_SIZEOF_FSBLKCNT_T", INT_TO_JSVAL(sizeof (fsblkcnt_t)) },
 
+// 10.4 doesn't have this either.
+#if(0)
 #if !defined(ANDROID)
   // The size of |posix_spawn_file_actions_t|.
   { "OSFILE_SIZEOF_POSIX_SPAWN_FILE_ACTIONS_T", INT_TO_JSVAL(sizeof (posix_spawn_file_actions_t)) },
 #endif // !defined(ANDROID)
+#endif
 
   // Defining |dirent|.
   // Size
@@ -596,7 +604,11 @@ static const dom::ConstantSpec gLibcProperties[] =
 #if defined(dirfd)
   { "OSFILE_SIZEOF_DIR", INT_TO_JSVAL(sizeof (DIR)) },
 
+/*
   { "OSFILE_OFFSETOF_DIR_DD_FD", INT_TO_JSVAL(offsetof (DIR, __dd_fd)) },
+  On 10.4 it's actually dd_fd, not __dd_fd (see /usr/include/dirent.h).
+*/
+  { "OSFILE_OFFSETOF_DIR_DD_FD", INT_TO_JSVAL(offsetof (DIR, dd_fd)) },
 #endif
 
   // Defining |stat|

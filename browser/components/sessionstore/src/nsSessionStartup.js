@@ -339,9 +339,12 @@ SessionStartup.prototype = {
   // yet, something is attempting to use the old synchronous initialization,
   // throw an error.
   _ensureInitialized: function sss__ensureInitialized() {
+/*
+This causes problems for us, and will eventually be removed by bug 952224.
     if (!this._initialized) {
       throw new Error("Session Store is not initialized.");
     }
+*/
   },
 
   /* ........ QueryInterface .............. */

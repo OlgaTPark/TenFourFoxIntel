@@ -38,6 +38,11 @@ ifdef HAVE_CLOCK_MONOTONIC
 LIBS += $(REALTIME_LIBS)
 endif
 
+# TenFourFox requires a lot of stack (10.4Fx issues 37, 63, 85 and others).
+# The default Mac OS X stack size of 8MB causes intermittent JavaScript
+# compilation failures. This is a disgusting hack.
+LIBS += -Wl,-stack_size,0x40000000,-stack_addr,0xf0000000
+
 ifndef MOZ_WINCONSOLE
 ifdef MOZ_DEBUG
 MOZ_WINCONSOLE = 1

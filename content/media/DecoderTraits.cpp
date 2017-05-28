@@ -64,6 +64,9 @@
 #include "MP4Decoder.h"
 #endif
 
+#include "minimp3/MiniDecoder.h"
+#include "minimp3/MP3Reader.h"
+
 namespace mozilla
 {
 
@@ -308,6 +311,60 @@ IsMP4SupportedType(const nsACString& aType)
 }
 #endif
 
+// MiniMP3 + QTE
+static const char * const gMiniMP3Types[] = {
+  "audio/mp3",
+  "audio/mpeg",
+  nullptr,
+};
+
+static const char * const gMiniMP3QTETypes[] = {
+  "audio/mp3",
+  "audio/mpeg",
+  "audio/mp4",
+  "video/mp4",
+  "video/3gpp",
+  "video/quicktime",
+  nullptr,
+};
+
+static char const *const gQTEH264Codecs[10] = {
+  "mp3",          // MP3
+  "avc1.42E01E",  // H.264 Constrained Baseline Profile Level 3.0
+  "avc1.42001E",  // H.264 Baseline Profile Level 3.0
+  "avc1.58A01E",  // H.264 Extended Profile Level 3.0
+  "avc1.4D401E",  // H.264 Main Profile Level 3.0
+  "avc1.64001E",  // H.264 High Profile Level 3.0
+  "avc1.64001F",  // H.264 High Profile Level 3.1
+  "mp4v.20.3",    // 3GPP
+  "mp4a.40.2",    // AAC-LC
+  nullptr
+};
+
+static char const *const gMiniMP3Codecs[2] = {
+  "mp3",          // MP3
+  nullptr
+};
+
+static bool
+IsMiniMP3SupportedType(const nsACString& aType,
+                       const char * const ** aCodecs = nullptr)
+{
+  if (MediaDecoder::IsMiniMP3Enabled()) {
+      if (MediaDecoder::IsTenFourFoxFakeMP4Enabled() &&
+          CodecListContains(gMiniMP3QTETypes, aType)) {
+        if (aCodecs) *aCodecs = gQTEH264Codecs;
+        return true;
+      }
+      if (CodecListContains(gMiniMP3Types, aType)) {
+        if (aCodecs) *aCodecs = gMiniMP3Codecs;
+        return true;
+      }
+  }
+  return false;
+}
+// MiniMP3
+
 #ifdef MOZ_APPLEMEDIA
 static const char * const gAppleMP3Types[] = {
   "audio/mp3",
@@ -426,6 +483,9 @@ DecoderTraits::CanHandleMediaType(const char* aMIMEType,
     result = CANPLAY_MAYBE;
   }
 #endif
+  if (IsMiniMP3SupportedType(nsDependentCString(aMIMEType), &codecList)) {
+    result = CANPLAY_MAYBE;
+  }
 #ifdef MOZ_MEDIA_PLUGINS
   if (MediaDecoder::IsMediaPluginsEnabled() &&
       GetMediaPluginHost()->FindDecoder(nsDependentCString(aMIMEType), &codecList))
@@ -555,6 +615,10 @@ InstantiateDecoder(const nsACString& aType, MediaDecoderOwner* aOwner)
     return decoder.forget();
   }
 #endif
+  if (IsMiniMP3SupportedType(aType)) {
+    decoder = new MiniMP3Decoder();
+    return decoder.forget();
+  }
 
   NS_ENSURE_TRUE(decoder != nullptr, nullptr);
   NS_ENSURE_TRUE(decoder->Init(aOwner), nullptr);
@@ -629,10 +693,15 @@ MediaDecoderReader* DecoderTraits::CreateReader(const nsACString& aType, Abstrac
   } else
 #endif
 #ifdef MOZ_APPLEMEDIA
+#if(0)
   if (IsAppleMediaSupportedType(aType)) {
     decoderReader = new AppleMP3Reader(aDecoder);
   } else
 #endif
+#endif
+  if (IsMiniMP3SupportedType(aType)) {
+    decoderReader = new MiniMP3Reader(aDecoder);
+  } else
   if (false) {} // dummy if to take care of the dangling else
 
   return decoderReader;
@@ -670,6 +739,7 @@ bool DecoderTraits::IsSupportedInVideoDocument(const nsACString& aType)
 #ifdef MOZ_APPLEMEDIA
     IsAppleMediaSupportedType(aType) ||
 #endif
+    IsMiniMP3SupportedType(aType) ||
 #ifdef NECKO_PROTOCOL_rtsp
     IsRtspSupportedType(aType) ||
 #endif

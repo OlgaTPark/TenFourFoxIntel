@@ -84,7 +84,7 @@ static const uint32_t LOW_AUDIO_USECS = 300000;
 // decoding more audio. If we increase the low audio threshold (see
 // LOW_AUDIO_USECS above) we'll also increase this value to ensure it's not
 // less than the low audio threshold.
-const int64_t AMPLE_AUDIO_USECS = 1000000;
+const int64_t AMPLE_AUDIO_USECS = 10000000;
 
 // When we're only playing audio and we don't have a video stream, we divide
 // AMPLE_AUDIO_USECS and LOW_AUDIO_USECS by the following value. This reduces
@@ -118,7 +118,7 @@ static const int THRESHOLD_FACTOR = 2;
 // ourselves to be running low on undecoded data. We determine how much
 // undecoded data we have remaining using the reader's GetBuffered()
 // implementation.
-static const int64_t LOW_DATA_THRESHOLD_USECS = 5000000;
+static const int64_t LOW_DATA_THRESHOLD_USECS = 50000000;
 
 // LOW_DATA_THRESHOLD_USECS needs to be greater than AMPLE_AUDIO_USECS, otherwise
 // the skip-to-keyframe logic can activate when we're running low on data.

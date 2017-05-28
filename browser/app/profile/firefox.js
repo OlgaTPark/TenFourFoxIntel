@@ -167,7 +167,7 @@ pref("app.update.auto", true);
 
 // See chart in nsUpdateService.js source for more details
 // incompatibilities are ignored by updates in Metro
-pref("app.update.mode", 1);
+pref("app.update.mode", 2);
 
 #ifdef XP_WIN
 #ifdef MOZ_METRO
@@ -182,7 +182,7 @@ pref("app.update.silent", false);
 
 // If set to true, the Update Service will apply updates in the background
 // when it finishes downloading them.
-pref("app.update.staging.enabled", true);
+pref("app.update.staging.enabled", false);
 
 // Update service URL:
 #ifndef RELEASE_BUILD
@@ -261,7 +261,8 @@ pref("keyword.enabled", true);
 pref("general.useragent.locale", "@AB_CD@");
 pref("general.skins.selectedSkin", "classic/1.0");
 
-pref("general.smoothScroll", true);
+// too slow on TenFourFox
+pref("general.smoothScroll", false);
 #ifdef UNIX_BUT_NOT_MAC
 pref("general.autoScroll", false);
 #else
@@ -277,7 +278,7 @@ pref("browser.shell.shortcutFavicons",true);
 pref("browser.startup.page",                1);
 pref("browser.startup.homepage",            "chrome://branding/locale/browserconfig.properties");
 
-pref("browser.slowStartup.notificationDisabled", false);
+pref("browser.slowStartup.notificationDisabled", true); // STFU!
 pref("browser.slowStartup.timeThreshold", 50000);
 pref("browser.slowStartup.maxSamples", 5);
 
@@ -646,8 +647,9 @@ pref("accessibility.typeaheadfind.flashBar", 1);
 pref("pfs.datasource.url", "https://pfs.mozilla.org/plugins/PluginFinderService.php?mimetype=%PLUGIN_MIMETYPE%&appID=%APP_ID%&appVersion=%APP_VERSION%&clientOS=%CLIENT_OS%&chromeLocale=%CHROME_LOCALE%&appRelease=%APP_RELEASE%");
 
 // by default we show an infobar message when pages require plugins that are blocked, or are outdated
-pref("plugins.hide_infobar_for_blocked_plugin", false);
-pref("plugins.hide_infobar_for_outdated_plugin", false);
+// except TenFourFox
+pref("plugins.hide_infobar_for_blocked_plugin", true);
+pref("plugins.hide_infobar_for_outdated_plugin", true);
 
 pref("plugins.update.url", "https://www.mozilla.org/%LOCALE%/plugincheck/");
 pref("plugins.update.notifyUser", false);
@@ -984,17 +986,17 @@ pref("browser.sessionstore.resume_from_crash", true);
 pref("browser.sessionstore.resume_session_once", false);
 
 // minimal interval between two save operations in milliseconds
-pref("browser.sessionstore.interval", 15000);
+pref("browser.sessionstore.interval", 20000);
 // on which sites to save text data, POSTDATA and cookies
 // 0 = everywhere, 1 = unencrypted sites, 2 = nowhere
 pref("browser.sessionstore.privacy_level", 0);
 // the same as browser.sessionstore.privacy_level, but for saving deferred session data
 pref("browser.sessionstore.privacy_level_deferred", 1);
 // how many tabs can be reopened (per window)
-pref("browser.sessionstore.max_tabs_undo", 10);
+pref("browser.sessionstore.max_tabs_undo", 4);
 // how many windows can be reopened (per session) - on non-OS X platforms this
 // pref may be ignored when dealing with pop-up windows to ensure proper startup
-pref("browser.sessionstore.max_windows_undo", 3);
+pref("browser.sessionstore.max_windows_undo", 2);
 // number of crashes that can occur before the about:sessionrestore page is displayed
 // (this pref has no effect if more than 6 hours have passed since the last crash)
 pref("browser.sessionstore.max_resumed_crashes", 1);
@@ -1091,10 +1093,11 @@ pref("toolkit.crashreporter.infoURL",
      "https://www.mozilla.org/legal/privacy/firefox.html#crash-reporter");
 
 // base URL for web-based support pages
-pref("app.support.baseURL", "https://support.mozilla.org/1/firefox/%VERSION%/%OS%/%LOCALE%/");
+pref("app.support.baseURL",
+     "http://www.tenfourfox.com/helpr/%VERSION%/%LOCALE%/");
 
 // base url for web-based feedback pages
-pref("app.feedback.baseURL", "https://input.mozilla.org/%LOCALE%/feedback/%APP%/%VERSION%/");
+pref("app.feedback.baseURL", "http://www.tenfourfox.com/feedback");
 
 // Name of alternate about: page for certificate errors (when undefined, defaults to about:neterror)
 pref("security.alternate_certificate_error_page", "certerror");
@@ -1470,7 +1473,8 @@ pref("toolkit.startup.max_resumed_crashes", 3);
 // Completely disable pdf.js as an option to preview pdfs within firefox.
 // Note: if this is not disabled it does not necessarily mean pdf.js is the pdf
 // handler just that it is an option.
-pref("pdfjs.disabled", false);
+// Not fast enough on PPC
+pref("pdfjs.disabled", true);
 // Used by pdf.js to know the first time firefox is run with it installed so it
 // can become the default pdf viewer.
 pref("pdfjs.firstRun", true);

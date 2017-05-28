@@ -1733,6 +1733,16 @@ MediaDecoder::IsAppleMP3Enabled()
   return Preferences::GetBool("media.apple.mp3.enabled");
 }
 #endif
+bool
+MediaDecoder::IsMiniMP3Enabled()
+{
+  return Preferences::GetBool("tenfourfox.mp3.enabled");
+}
+bool
+MediaDecoder::IsTenFourFoxFakeMP4Enabled()
+{
+  return Preferences::GetBool("tenfourfox.mp4_fake.enabled");
+}
 
 NS_IMETHODIMP
 MediaMemoryTracker::CollectReports(nsIHandleReportCallback* aHandleReport,

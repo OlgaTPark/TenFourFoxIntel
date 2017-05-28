@@ -78,10 +78,12 @@ PluginInstanceParent::PluginInstanceParent(PluginModuleParent* parent,
     , mPluginWndProc(nullptr)
     , mNestedEventState(false)
 #endif // defined(XP_WIN)
+#if(0)
 #if defined(XP_MACOSX)
     , mShWidth(0)
     , mShHeight(0)
     , mShColorSpace(nullptr)
+#endif
 #endif
 {
 }
@@ -95,12 +97,14 @@ PluginInstanceParent::~PluginInstanceParent()
     NS_ASSERTION(!(mPluginHWND || mPluginWndProc),
         "Subclass was not reset correctly before the dtor was reached!");
 #endif
+#if(0)
 #if defined(MOZ_WIDGET_COCOA)
     if (mShWidth != 0 && mShHeight != 0) {
         DeallocShmem(mShSurface);
     }
     if (mShColorSpace)
         ::CGColorSpaceRelease(mShColorSpace);
+#endif
 #endif
     if (mRemoteImageDataShmem.IsWritable()) {
         if (mImageContainer) {
@@ -357,6 +361,7 @@ PluginInstanceParent::AnswerNPN_SetValue_NPPVpluginDrawingModel(
 {
     *shmem = null_t();
 
+#if(0)
 #ifdef XP_MACOSX
     if (drawingModel == NPDrawingModelCoreAnimation ||
         drawingModel == NPDrawingModelInvalidatingCoreAnimation) {
@@ -367,6 +372,7 @@ PluginInstanceParent::AnswerNPN_SetValue_NPPVpluginDrawingModel(
         *result = mNPNIface->setvalue(mNPP, NPPVpluginDrawingModel,
                                   (void*)NPDrawingModelCoreGraphics);
     } else
+#endif
 #endif
     if (drawingModel == NPDrawingModelAsyncBitmapSurface
 #ifdef XP_WIN
@@ -412,8 +418,12 @@ PluginInstanceParent::AnswerNPN_SetValue_NPPVpluginDrawingModel(
 #if defined(XP_WIN)
                drawingModel == NPDrawingModelSyncWin
 #elif defined(XP_MACOSX)
+#if(0)
                drawingModel == NPDrawingModelOpenGL ||
                drawingModel == NPDrawingModelCoreGraphics
+#else
+1 // are you happy, gcc?
+#endif
 #elif defined(MOZ_X11)
                drawingModel == NPDrawingModelSyncX
 #else
@@ -444,6 +454,7 @@ bool
 PluginInstanceParent::AnswerNPN_SetValue_NPPVpluginEventModel(
     const int& eventModel, NPError* result)
 {
+#if(0)
 #ifdef XP_MACOSX
     *result = mNPNIface->setvalue(mNPP, NPPVpluginEventModel,
                                   (void*)(intptr_t)eventModel);
@@ -452,6 +463,8 @@ PluginInstanceParent::AnswerNPN_SetValue_NPPVpluginEventModel(
     *result = NPERR_GENERIC_ERROR;
     return true;
 #endif
+#endif
+    return false; // to make gcc happy
 }
 
 bool
@@ -565,6 +578,7 @@ PluginInstanceParent::RecvShow(const NPRect& updatedRect,
         }
         surface = gfxSharedImageSurface::Open(newSurface.get_Shmem());
     }
+#if(0)
 #ifdef XP_MACOSX
     else if (newSurface.type() == SurfaceDescriptor::TIOSurfaceDescriptor) {
         IOSurfaceDescriptor iodesc = newSurface.get_IOSurfaceDescriptor();
@@ -593,6 +607,7 @@ PluginInstanceParent::RecvShow(const NPRect& updatedRect,
 
         return true;
     }
+#endif
 #endif
 #ifdef MOZ_X11
     else if (newSurface.type() == SurfaceDescriptor::TSurfaceDescriptorX11) {
@@ -674,10 +689,12 @@ PluginInstanceParent::AsyncSetWindow(NPWindow* aWindow)
     window.height = aWindow->height;
     window.clipRect = aWindow->clipRect;
     window.type = aWindow->type;
+#if(0)
 #ifdef XP_MACOSX
     double scaleFactor = 1.0;
     mNPNIface->getvalue(mNPP, NPNVcontentsScaleFactor, &scaleFactor);
     window.contentsScaleFactor = scaleFactor;
+#endif
 #endif
     if (!SendAsyncSetWindow(gfxPlatform::GetPlatform()->ScreenReferenceSurface()->GetType(),
                             window))
@@ -689,6 +706,7 @@ PluginInstanceParent::AsyncSetWindow(NPWindow* aWindow)
 nsresult
 PluginInstanceParent::GetImageContainer(ImageContainer** aContainer)
 {
+#if(0)
 #ifdef XP_MACOSX
     MacIOSurface* ioSurface = nullptr;
   
@@ -701,6 +719,7 @@ PluginInstanceParent::GetImageContainer(ImageContainer** aContainer)
     if (!mFrontSurface && !ioSurface)
 #else
     if (!mFrontSurface)
+#endif
 #endif
         return NS_ERROR_NOT_AVAILABLE;
 
@@ -716,6 +735,7 @@ PluginInstanceParent::GetImageContainer(ImageContainer** aContainer)
       return NS_OK;
     }
 
+#if(0)
 #ifdef XP_MACOSX
     if (ioSurface) {
         nsRefPtr<Image> image = container->CreateImage(ImageFormat::MAC_IOSURFACE);
@@ -735,6 +755,7 @@ PluginInstanceParent::GetImageContainer(ImageContainer** aContainer)
         return NS_OK;
     }
 #endif
+#endif
 
     NS_IF_ADDREF(container);
     *aContainer = container;
@@ -750,6 +771,7 @@ PluginInstanceParent::GetImageSize(nsIntSize* aSize)
         return NS_OK;
     }
 
+#if(0)
 #ifdef XP_MACOSX
     if (mFrontIOSurface) {
         *aSize = nsIntSize(mFrontIOSurface->GetWidth(), mFrontIOSurface->GetHeight());
@@ -759,10 +781,12 @@ PluginInstanceParent::GetImageSize(nsIntSize* aSize)
         return NS_OK;
     }
 #endif
+#endif
 
     return NS_ERROR_NOT_AVAILABLE;
 }
 
+#if(0)
 #ifdef XP_MACOSX
 nsresult
 PluginInstanceParent::IsRemoteDrawingCoreAnimation(bool *aDrawing)
@@ -779,6 +803,7 @@ PluginInstanceParent::ContentsScaleFactorChanged(double aContentsScaleFactor)
     return rv ? NS_OK : NS_ERROR_FAILURE;
 }
 #endif // #ifdef XP_MACOSX
+#endif
 
 nsresult
 PluginInstanceParent::SetBackgroundUnknown()
@@ -988,6 +1013,7 @@ PluginInstanceParent::NPP_SetWindow(const NPWindow* aWindow)
     window.type = aWindow->type;
 #endif
 
+#if(0)
 #if defined(XP_MACOSX)
     double floatScaleFactor = 1.0;
     mNPNIface->getvalue(mNPP, NPNVcontentsScaleFactor, &floatScaleFactor);
@@ -1018,6 +1044,7 @@ PluginInstanceParent::NPP_SetWindow(const NPWindow* aWindow)
         mShWidth = window.width * scaleFactor;
         mShHeight = window.height * scaleFactor;
     }
+#endif
 #endif
 
 #if defined(MOZ_X11) && defined(XP_UNIX) && !defined(XP_MACOSX)
@@ -1165,6 +1192,7 @@ PluginInstanceParent::NPP_HandleEvent(void* event)
 {
     PLUGIN_LOG_DEBUG_FUNCTION;
 
+#if(0)
 #if defined(XP_MACOSX)
     NPCocoaEvent* npevent = reinterpret_cast<NPCocoaEvent*>(event);
 #else
@@ -1375,6 +1403,8 @@ PluginInstanceParent::NPP_HandleEvent(void* event)
         return 0; // no good way to handle errors here...
 
     return handled;
+#endif
+    return false; // to make gcc happy
 }
 
 NPError

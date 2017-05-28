@@ -877,6 +877,8 @@ public:
 #ifdef MOZ_APPLEMEDIA
   static bool IsAppleMP3Enabled();
 #endif
+  static bool IsMiniMP3Enabled();
+  static bool IsTenFourFoxFakeMP4Enabled();
 
   // Schedules the state machine to run one cycle on the shared state
   // machine thread. Main thread only.

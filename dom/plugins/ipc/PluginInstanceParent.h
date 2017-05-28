@@ -339,6 +339,7 @@ private:
     // This will automatically release the textures when this object goes away.
     nsRefPtrHashtable<nsPtrHashKey<void>, ID3D10Texture2D> mTextureMap;
 #endif // defined(XP_WIN)
+#if(0) // 10.4 no haz, beyotch.
 #if defined(MOZ_WIDGET_COCOA)
 private:
     Shmem                  mShSurface; 
@@ -348,6 +349,7 @@ private:
     RefPtr<MacIOSurface> mIOSurface;
     RefPtr<MacIOSurface> mFrontIOSurface;
 #endif // definied(MOZ_WIDGET_COCOA)
+#endif
 
     // ObjectFrame layer wrapper
     nsRefPtr<gfxASurface>    mFrontSurface;
